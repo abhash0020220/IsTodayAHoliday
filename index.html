@@ -681,19 +681,29 @@
   async function fetchMeal() {
     const { diet, time, cuisine } = prefs;
     const wantQuick = time === 'quick';
-    const MAX_TRIES = (wantQuick || (diet && cuisine)) ? 5 : 2;
 
-    // Decide which API filter to use as the primary list
+    // Build the candidate list. For diet+cuisine, intersect both filter lists so
+    // we never return a meal that fails either constraint.
     let mealList = null;
+
     if (diet && cuisine) {
-      mealList = await fetchList('c', diet); // diet filter; cuisine matched client-side
+      const [dietList, cuisineList] = await Promise.all([
+        fetchList('c', diet),
+        fetchList('a', cuisine),
+      ]);
+      const dietIds = new Set(dietList.map(m => m.idMeal));
+      mealList = cuisineList.filter(m => dietIds.has(m.idMeal));
+      if (mealList.length === 0) {
+        throw new Error(`No ${diet} recipes exist for ${cuisine} cuisine — try a different combination`);
+      }
     } else if (diet) {
       mealList = await fetchList('c', diet);
     } else if (cuisine) {
       mealList = await fetchList('a', cuisine);
     }
 
-    let bestMatch = null;
+    // Try a few times only when filtering by quick time (need full details to check)
+    const MAX_TRIES = wantQuick ? 4 : 1;
 
     for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
       let meal;
@@ -713,15 +723,11 @@
         if (!meal) continue;
       }
 
-      const cuisineOk = !diet || !cuisine || meal.strArea === cuisine;
-      const timeOk    = !wantQuick || isQuick(meal);
-
-      if (cuisineOk && timeOk) return meal;
-      if (!bestMatch || (cuisineOk && !isQuick(bestMatch))) bestMatch = meal;
+      // Accept on last attempt regardless of time (don't fail just because of word count)
+      if (!wantQuick || isQuick(meal) || attempt === MAX_TRIES - 1) return meal;
     }
 
-    if (bestMatch) return bestMatch; // best we found within retries
-    throw new Error('Could not find a matching recipe — try relaxing your preferences');
+    throw new Error('Could not find a matching recipe — try again');
   }
 
   async function fetchList(param, value) {
