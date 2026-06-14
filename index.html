@@ -63,6 +63,7 @@
       font-size: 1.5rem;
       color: var(--primary);
       letter-spacing: -0.3px;
+      cursor: pointer;
     }
 
     .app-sub {
@@ -106,6 +107,115 @@
       width: 100%;
       max-width: 720px;
       overflow: hidden;
+    }
+
+    /* ── Landing page ── */
+    .landing-wrap {
+      padding: 52px 36px 48px;
+      text-align: center;
+    }
+
+    .landing-hero {
+      font-size: 3rem;
+      margin-bottom: 6px;
+      line-height: 1;
+    }
+
+    .landing-title {
+      font-family: 'Playfair Display', Georgia, serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: var(--text-1);
+      letter-spacing: -0.5px;
+      margin-bottom: 8px;
+    }
+
+    .landing-sub {
+      font-size: 0.9375rem;
+      color: var(--text-2);
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    .pref-section {
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .pref-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--primary);
+      margin-bottom: 12px;
+    }
+
+    .pref-hint {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      margin-left: 8px;
+      font-weight: 400;
+      text-transform: none;
+      letter-spacing: 0;
+    }
+
+    .pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      padding: 9px 20px;
+      border: 1.5px solid var(--border);
+      border-radius: 999px;
+      background: none;
+      color: var(--text-2);
+      cursor: pointer;
+      font-size: 0.875rem;
+      font-weight: 600;
+      transition: all 0.12s;
+      font-family: inherit;
+      line-height: 1;
+    }
+
+    .pill:hover {
+      border-color: var(--primary-border);
+      color: var(--primary);
+      background: var(--primary-light);
+    }
+
+    .pill.active {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    .btn-feed {
+      margin-top: 10px;
+      width: 100%;
+      padding: 17px;
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: background 0.14s, box-shadow 0.14s, transform 0.1s;
+      box-shadow: 0 4px 18px rgba(249,115,22,0.38);
+      font-family: inherit;
+      letter-spacing: 0.01em;
+    }
+
+    .btn-feed:hover { background: var(--primary-hover); box-shadow: 0 6px 22px rgba(249,115,22,0.45); }
+    .btn-feed:active { transform: scale(0.98); }
+
+    .landing-note {
+      font-size: 0.72rem;
+      color: var(--text-3);
+      margin-top: 14px;
     }
 
     /* ── Loading ── */
@@ -152,6 +262,8 @@
       word-break: break-all;
     }
 
+    .error-actions { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+
     .btn-retry {
       padding: 11px 26px;
       font-size: 0.9rem;
@@ -166,6 +278,21 @@
     }
 
     .btn-retry:hover { background: var(--primary-hover); }
+
+    .btn-back-ghost {
+      padding: 11px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-2);
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.14s;
+    }
+
+    .btn-back-ghost:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
 
     /* ── Meal image ── */
     .meal-img-wrap {
@@ -193,6 +320,7 @@
       gap: 8px;
       flex-wrap: wrap;
       margin-bottom: 12px;
+      align-items: center;
     }
 
     .badge {
@@ -223,6 +351,18 @@
       border-color: #14532d;
     }
 
+    .badge-time {
+      background: #fefce8;
+      color: #854d0e;
+      border-color: #fde68a;
+    }
+
+    body.dark .badge-time {
+      background: #1c1400;
+      color: #fbbf24;
+      border-color: #713f12;
+    }
+
     .meal-name {
       font-family: 'Playfair Display', Georgia, serif;
       font-weight: 900;
@@ -251,23 +391,28 @@
       transition: background 0.14s, transform 0.1s, box-shadow 0.14s;
       box-shadow: 0 4px 18px rgba(249,115,22,0.38);
       font-family: inherit;
-      margin-bottom: 30px;
+      margin-bottom: 12px;
     }
 
     .btn-roll:hover { background: var(--primary-hover); box-shadow: 0 6px 22px rgba(249,115,22,0.45); }
     .btn-roll:active { transform: scale(0.98); }
-    .btn-roll:disabled { opacity: 0.65; cursor: not-allowed; transform: none !important; }
 
-    @keyframes spin-sm { to { transform: rotate(360deg); } }
-    .btn-spinner {
-      width: 18px;
-      height: 18px;
-      border: 2.5px solid rgba(255,255,255,0.35);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin-sm 0.7s linear infinite;
-      flex-shrink: 0;
+    .btn-change-prefs {
+      width: 100%;
+      padding: 10px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--text-3);
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      cursor: pointer;
+      font-family: inherit;
+      transition: all 0.14s;
+      margin-bottom: 28px;
     }
+
+    .btn-change-prefs:hover { border-color: var(--primary-border); color: var(--primary); background: var(--primary-light); }
 
     /* Divider */
     .divider {
@@ -421,6 +566,8 @@
 
     /* Responsive */
     @media (max-width: 600px) {
+      .landing-wrap { padding: 36px 22px 36px; }
+      .landing-title { font-size: 1.6rem; }
       .recipe-body { padding: 20px 18px 28px; }
       .meal-name { font-size: 1.5rem; }
       .meal-img-wrap { height: 220px; }
@@ -431,7 +578,7 @@
 <body>
 
 <header>
-  <div>
+  <div onclick="showLanding()" style="cursor:pointer">
     <div class="app-name">Help, I'm Hungry!</div>
     <div class="app-sub">Get a random recipe, start cooking</div>
   </div>
@@ -448,7 +595,21 @@
 </footer>
 
 <script>
-  const RANDOM_URL = 'https://www.themealdb.com/api/json/v1/1/random.php';
+  const BASE = 'https://www.themealdb.com/api/json/v1/1';
+
+  const DIET_OPTIONS = [
+    { label: '🍽️ Anything',    value: null },
+    { label: '🥗 Vegetarian',  value: 'Vegetarian' },
+    { label: '🌱 Vegan',       value: 'Vegan' },
+    { label: '🐟 Seafood',     value: 'Seafood' },
+    { label: '🍗 Chicken',     value: 'Chicken' },
+    { label: '🥩 Beef',        value: 'Beef' },
+  ];
+
+  const TIME_OPTIONS = [
+    { label: '⏰ Any time',       value: null },
+    { label: '⚡ Quick (~30 min)', value: 'quick' },
+  ];
 
   const LOADING_MSGS = [
     'Raiding the fridge…',
@@ -461,9 +622,60 @@
 
   const card = document.getElementById('card');
   let msgTimer = null;
-  let msgIdx = 0;
+  let msgIdx   = 0;
+  let prefs    = { diet: null, time: null };
 
-  // ── State helpers — just replace innerHTML, no CSS fights ─────────────────
+  // ── Landing page ──────────────────────────────────────────────────────────
+  function showLanding() {
+    stopLoading();
+    const dietHtml = DIET_OPTIONS.map((o, i) =>
+      `<button class="pill${i === 0 ? ' active' : ''}" data-group="diet" data-value="${o.value ?? ''}" onclick="selectPill(this,'diet',${JSON.stringify(o.value)})">${o.label}</button>`
+    ).join('');
+
+    const timeHtml = TIME_OPTIONS.map((o, i) =>
+      `<button class="pill${i === 0 ? ' active' : ''}" data-group="time" data-value="${o.value ?? ''}" onclick="selectPill(this,'time',${JSON.stringify(o.value)})">${o.label}</button>`
+    ).join('');
+
+    card.innerHTML = `
+      <div class="landing-wrap">
+        <div class="landing-hero">🍽️</div>
+        <h1 class="landing-title">What are you feeling?</h1>
+        <p class="landing-sub">Tell us a little about yourself and we'll find something delicious.</p>
+
+        <div class="pref-section">
+          <p class="pref-label">Any dietary restrictions?</p>
+          <div class="pills">${dietHtml}</div>
+        </div>
+
+        <div class="pref-section">
+          <p class="pref-label">How much time do you have? <span class="pref-hint">estimated from recipe length</span></p>
+          <div class="pills">${timeHtml}</div>
+        </div>
+
+        <button class="btn-feed" onclick="loadMeal()">Feed Me! →</button>
+        <p class="landing-note">Powered by TheMealDB — completely free, no account needed.</p>
+      </div>`;
+
+    // Restore pill state if user came back from a recipe
+    if (prefs.diet !== null) {
+      document.querySelectorAll('[data-group="diet"]').forEach(p => {
+        p.classList.toggle('active', p.dataset.value === (prefs.diet ?? ''));
+      });
+    }
+    if (prefs.time !== null) {
+      document.querySelectorAll('[data-group="time"]').forEach(p => {
+        p.classList.toggle('active', p.dataset.value === (prefs.time ?? ''));
+      });
+    }
+  }
+
+  function selectPill(el, group, value) {
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(p => p.classList.remove('active'));
+    el.classList.add('active');
+    prefs[group] = value;
+  }
+
+  // ── Loading ───────────────────────────────────────────────────────────────
   function showLoading() {
     card.innerHTML = `
       <div class="loading-wrap">
@@ -483,13 +695,17 @@
     msgTimer = null;
   }
 
+  // ── Error ─────────────────────────────────────────────────────────────────
   function showError(msg) {
     card.innerHTML = `
       <div class="error-wrap">
         <div class="error-emoji">😩</div>
         <p class="error-title">Couldn't find a recipe</p>
         <p class="error-detail">${esc(msg)}</p>
-        <button class="btn-retry" onclick="loadMeal()">Try again</button>
+        <div class="error-actions">
+          <button class="btn-retry" onclick="loadMeal()">Try again</button>
+          <button class="btn-back-ghost" onclick="showLanding()">Change preferences</button>
+        </div>
       </div>`;
   }
 
@@ -497,17 +713,64 @@
   async function loadMeal() {
     showLoading();
     try {
-      const res = await fetch(RANDOM_URL);
-      if (!res.ok) throw new Error(`API returned HTTP ${res.status}`);
-      const data = await res.json();
-      const meal = data.meals && data.meals[0];
-      if (!meal) throw new Error('API returned no meal data');
+      const meal = await fetchMeal();
       stopLoading();
       showMeal(meal);
     } catch (err) {
       stopLoading();
       showError(err.message);
     }
+  }
+
+  async function fetchMeal() {
+    const { diet, time } = prefs;
+    const wantQuick = time === 'quick';
+    const MAX_TRIES = wantQuick ? 4 : 1;
+
+    if (diet) {
+      // Fetch the filtered list first (one call), then pick a random meal from it
+      const listRes = await fetch(`${BASE}/filter.php?c=${encodeURIComponent(diet)}`);
+      if (!listRes.ok) throw new Error(`Filter API returned HTTP ${listRes.status}`);
+      const listData = await listRes.json();
+      const meals = listData.meals;
+      if (!meals || meals.length === 0) throw new Error(`No ${diet} recipes found — try a different filter`);
+
+      for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+        const pick = meals[Math.floor(Math.random() * meals.length)];
+        const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        const meal = data.meals?.[0];
+        if (!meal) continue;
+        if (wantQuick && attempt < MAX_TRIES - 1 && !isQuick(meal)) continue;
+        return meal;
+      }
+      throw new Error('Could not find a matching recipe — try again');
+    } else {
+      for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
+        const res  = await fetch(`${BASE}/random.php`);
+        if (!res.ok) throw new Error(`API returned HTTP ${res.status}`);
+        const data = await res.json();
+        const meal = data.meals?.[0];
+        if (!meal) continue;
+        if (wantQuick && attempt < MAX_TRIES - 1 && !isQuick(meal)) continue;
+        return meal;
+      }
+      throw new Error('API returned no meal data');
+    }
+  }
+
+  function isQuick(meal) {
+    const words = (meal.strInstructions || '').split(/\s+/).filter(Boolean).length;
+    return words <= 300;
+  }
+
+  function estimateTime(instructions) {
+    const words = (instructions || '').split(/\s+/).filter(Boolean).length;
+    if (words <= 150) return '~15 min';
+    if (words <= 300) return '~30 min';
+    if (words <= 500) return '~45 min';
+    return '60+ min';
   }
 
   // ── Render ────────────────────────────────────────────────────────────────
@@ -525,10 +788,16 @@
         </li>`;
     }
 
-    // Build steps
+    // Build steps — strip bare number lines and "Step N" headers, then strip "1." prefixes
     const raw   = (m.strInstructions || '').trim();
-    const steps = raw.split(/\r?\n+/).map(s => s.trim()).filter(Boolean);
-    let stepsHtml = steps.map((s, i) => `
+    const steps = raw
+      .split(/\r?\n+/)
+      .map(s => s.trim())
+      .filter(s => s.length > 0 && !/^(step\s*)?\d+[.:]?\s*$/i.test(s))
+      .map(s => s.replace(/^(step\s*)?\d+[.:]\s*/i, '').trim())
+      .filter(s => s.length > 0);
+
+    const stepsHtml = steps.map((s, i) => `
       <div class="step">
         <span class="step-num">${i + 1}</span>
         <p class="step-text">${esc(s)}</p>
@@ -543,6 +812,8 @@
         Watch on YouTube
       </a>` : '';
 
+    const timeEst = estimateTime(m.strInstructions);
+
     card.innerHTML = `
       <div class="meal-img-wrap">
         <img class="meal-img" src="${esc(m.strMealThumb)}" alt="${esc(m.strMeal)}" />
@@ -551,9 +822,11 @@
         <div class="meta-row">
           ${m.strCategory ? `<span class="badge badge-cat">${esc(m.strCategory)}</span>` : ''}
           ${m.strArea     ? `<span class="badge badge-area">${esc(m.strArea)}</span>`    : ''}
+          <span class="badge badge-time">⏱ ${timeEst}</span>
         </div>
         <h2 class="meal-name">${esc(m.strMeal)}</h2>
         <button class="btn-roll" onclick="loadMeal()">🎲 Feed me something else</button>
+        <button class="btn-change-prefs" onclick="showLanding()">← Change preferences</button>
         <div class="divider"></div>
         <div class="recipe-cols">
           <div>
@@ -567,7 +840,12 @@
         </div>
         <div class="recipe-actions">
           ${ytHtml}
-          <button class="btn-share" onclick="shareMeal(this, '${esc(m.strMeal)}', '${m.idMeal}', '${esc(m.strCategory)}', '${esc(m.strArea)}')">
+          <button class="btn-share"
+            data-name="${esc(m.strMeal)}"
+            data-id="${m.idMeal}"
+            data-cat="${esc(m.strCategory)}"
+            data-area="${esc(m.strArea)}"
+            onclick="shareMealFromBtn(this)">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
@@ -579,15 +857,14 @@
       </div>`;
   }
 
-  function shareMeal(btn, name, id, cat, area) {
+  function shareMealFromBtn(btn) {
+    const { name, id, cat, area } = btn.dataset;
     const text = `🍽️ ${name}\n\nCategory: ${cat} · Cuisine: ${area}\n\nhttps://www.themealdb.com/meal/${id}`;
+    const orig = btn.innerHTML;
     navigator.clipboard.writeText(text).then(() => {
       btn.classList.add('ok');
       btn.textContent = '✓ Copied!';
-      setTimeout(() => {
-        btn.classList.remove('ok');
-        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg> Share`;
-      }, 2200);
+      setTimeout(() => { btn.classList.remove('ok'); btn.innerHTML = orig; }, 2200);
     });
   }
 
@@ -595,8 +872,9 @@
   const MOON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
   const SUN  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
 
-  const syncIcon = () => document.getElementById('dark-btn').innerHTML =
-    document.body.classList.contains('dark') ? SUN : MOON;
+  const syncIcon = () =>
+    document.getElementById('dark-btn').innerHTML =
+      document.body.classList.contains('dark') ? SUN : MOON;
 
   function toggleDark() {
     document.body.classList.toggle('dark');
@@ -615,8 +893,8 @@
       .replace(/'/g, '&#39;');
   }
 
-  // ── Go ────────────────────────────────────────────────────────────────────
-  loadMeal();
+  // ── Init ──────────────────────────────────────────────────────────────────
+  showLanding();
 </script>
 </body>
 </html>
