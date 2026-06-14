@@ -665,37 +665,68 @@
     const diet    = prefs.diet;
     const cuisine = prefs.cuisine;
 
-    // Neither selected → pure random
     if (!diet && !cuisine) return fetchRandom();
+    if (diet && !cuisine)  return lookupRandom(await fetchList('c', diet));
 
-    // Diet only (no cuisine) → TheMealDB category filter
-    if (diet && !cuisine) return lookupRandom(await fetchList('c', diet));
+    // Try the area filter for cuisine. On TheMealDB's free tier this sometimes
+    // returns {meals:null} — catch silently and fall back rather than throwing.
+    let cuisinePool = null;
+    try { cuisinePool = await fetchList('a', cuisine); } catch (_) {}
 
-    // Cuisine only (no diet) → area filter, pick random
-    if (!diet && cuisine) return lookupRandom(await fetchList('a', cuisine));
-
-    // Both diet + cuisine selected
-    const cuisineList = await fetchList('a', cuisine);
-
-    if (diet === 'Vegetarian' || diet === 'Vegan') {
-      // TheMealDB's Vegetarian/Vegan categories miss many genuinely plant-based
-      // dishes. Check ingredients directly on meals from the cuisine list.
-      return findByIngredients(cuisineList, diet, cuisine);
+    if (!diet) {
+      if (cuisinePool) return lookupRandom(cuisinePool);
+      // Area filter unavailable: spin random meals until one matches the cuisine
+      return findCuisineViaRandom(cuisine);
     }
 
-    // Category-backed diet (Chicken, Beef, Seafood) + cuisine:
-    // Try to intersect the two lists. If the intersection is empty (e.g. no
-    // Beef meals tagged Italian), fall back to any meal from that cuisine.
-    let dietList = [];
-    try { dietList = await fetchList('c', diet); } catch (_) { /* ignore */ }
-    const dietIds = new Set(dietList.map(m => m.idMeal));
-    const matched = cuisineList.filter(m => dietIds.has(m.idMeal));
-    return lookupRandom(matched.length ? matched : cuisineList);
+    // Diet + cuisine: scan whichever pool we have for a meal passing the diet check
+    if (cuisinePool) return findDietInPool(cuisinePool, diet, cuisine);
+
+    // Area filter unavailable fallback: use diet category pool, check strArea
+    const dietPool = await fetchList('c', diet);
+    return findCuisineInDietPool(dietPool, cuisine, diet);
+  }
+
+  // Try random meals until one is from the right cuisine
+  async function findCuisineViaRandom(cuisine) {
+    for (let i = 0; i < 20; i++) {
+      const meal = await fetchRandom();
+      if (meal.strArea === cuisine) return meal;
+    }
+    throw new Error('Couldn\'t find a ' + cuisine + ' meal — try again');
+  }
+
+  // Scan a cuisine-filtered pool and return the first meal that passes the diet check
+  async function findDietInPool(pool, diet, cuisine) {
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+    for (let i = 0; i < Math.min(shuffled.length, 15); i++) {
+      try {
+        const res  = await fetch(BASE + '/lookup.php?i=' + shuffled[i].idMeal);
+        if (!res.ok) continue;
+        const meal = (await res.json()).meals?.[0];
+        if (meal && meetsDiet(meal, diet)) return meal;
+      } catch (_) { continue; }
+    }
+    throw new Error('No ' + diet + ' meals found in ' + cuisine + ' cuisine — try a different combination');
+  }
+
+  // Scan a diet-category pool and return the first meal from the right cuisine
+  async function findCuisineInDietPool(pool, cuisine, diet) {
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+    for (let i = 0; i < Math.min(shuffled.length, 20); i++) {
+      try {
+        const res  = await fetch(BASE + '/lookup.php?i=' + shuffled[i].idMeal);
+        if (!res.ok) continue;
+        const meal = (await res.json()).meals?.[0];
+        if (meal && meal.strArea === cuisine && meetsDiet(meal, diet)) return meal;
+      } catch (_) { continue; }
+    }
+    throw new Error('No ' + diet + ' ' + cuisine + ' meals found — try a different combination');
   }
 
   async function fetchRandom() {
-    const res  = await fetch(`${BASE}/random.php`);
-    if (!res.ok) throw new Error(`Random API returned HTTP ${res.status}`);
+    const res  = await fetch(BASE + '/random.php');
+    if (!res.ok) throw new Error('Random API returned HTTP ' + res.status);
     const meal = (await res.json()).meals?.[0];
     if (!meal) throw new Error('No meal returned from API');
     return meal;
@@ -703,37 +734,26 @@
 
   async function lookupRandom(list) {
     const pick = list[Math.floor(Math.random() * list.length)];
-    const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
-    if (!res.ok) throw new Error(`Lookup API returned HTTP ${res.status}`);
+    const res  = await fetch(BASE + '/lookup.php?i=' + pick.idMeal);
+    if (!res.ok) throw new Error('Lookup returned HTTP ' + res.status);
     const meal = (await res.json()).meals?.[0];
     if (!meal) throw new Error('No meal data in lookup response');
     return meal;
   }
 
-  async function findByIngredients(list, diet, cuisine) {
-    const check    = diet === 'Vegan' ? meetsVegan : meetsVegetarian;
-    const shuffled = [...list].sort(() => Math.random() - 0.5);
-    const tries    = shuffled.slice(0, Math.min(list.length, 12));
-    for (const pick of tries) {
-      try {
-        const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
-        if (!res.ok) continue;
-        const meal = (await res.json()).meals?.[0];
-        if (meal && check(meal)) return meal;
-      } catch (_) { continue; }
-    }
-    throw new Error(`No ${diet} meals found in ${cuisine} cuisine — try a different combination`);
-  }
-
   async function fetchList(param, value) {
-    const res  = await fetch(`${BASE}/filter.php?${param}=${encodeURIComponent(value)}`);
-    if (!res.ok) throw new Error(`Filter API returned HTTP ${res.status}`);
+    const res  = await fetch(BASE + '/filter.php?' + param + '=' + encodeURIComponent(value));
+    if (!res.ok) throw new Error('Filter API returned HTTP ' + res.status);
     const data = await res.json();
-    if (!data.meals?.length) throw new Error(`No ${value} recipes found`);
+    if (!data.meals || !data.meals.length) throw new Error('No ' + value + ' recipes found');
     return data.meals;
   }
 
-  // ── Ingredient-based diet checks ──────────────────────────────────────────
+  // ── Diet checks via ingredient scanning ───────────────────────────────────
+  // All diet preferences are checked by inspecting the ingredient list, not
+  // TheMealDB's category tag. This catches meals like Grilled Cheese (tagged
+  // "Miscellaneous" but correctly vegetarian by ingredients).
+
   const NON_VEGETARIAN = [
     'chicken', 'beef', 'lamb', 'pork', 'ham', 'bacon', 'turkey', 'duck', 'veal',
     'venison', 'steak', 'mince', 'sausage', 'salami', 'prosciutto', 'chorizo',
@@ -748,8 +768,22 @@
     'egg', 'eggs', 'honey', 'whey',
   ]);
 
-  function meetsVegetarian(meal) { return !ingredientsContain(meal, NON_VEGETARIAN); }
-  function meetsVegan(meal)      { return !ingredientsContain(meal, NON_VEGAN); }
+  const SEAFOOD_TERMS = [
+    'fish', 'salmon', 'tuna', 'cod', 'haddock', 'trout', 'mackerel', 'sardine',
+    'anchovy', 'anchovies', 'prawn', 'shrimp', 'lobster', 'crab', 'squid',
+    'scallop', 'mussel', 'clam', 'oyster',
+  ];
+
+  function meetsDiet(meal, diet) {
+    switch (diet) {
+      case 'Vegetarian': return !ingredientsContain(meal, NON_VEGETARIAN);
+      case 'Vegan':      return !ingredientsContain(meal, NON_VEGAN);
+      case 'Chicken':    return ingredientsContain(meal, ['chicken']);
+      case 'Beef':       return ingredientsContain(meal, ['beef', 'steak', 'mince']);
+      case 'Seafood':    return ingredientsContain(meal, SEAFOOD_TERMS);
+      default:           return true;
+    }
+  }
 
   function ingredientsContain(meal, terms) {
     for (let i = 1; i <= 20; i++) {
