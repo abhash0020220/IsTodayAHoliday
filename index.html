@@ -4,37 +4,40 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Is Today a Holiday?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #f5f3ff;
+      --bg: #fffcf5;
       --surface: #ffffff;
-      --primary: #7c3aed;
-      --primary-hover: #6d28d9;
-      --primary-light: #ede9fe;
-      --primary-border: #c4b5fd;
-      --text-1: #1e293b;
-      --text-2: #475569;
-      --text-3: #94a3b8;
-      --border: #e2e8f0;
-      --shadow: 0 4px 20px rgba(0,0,0,0.08);
-      --radius: 16px;
+      --primary: #e85d04;
+      --primary-hover: #c2410c;
+      --primary-light: #fff7ed;
+      --primary-border: #fed7aa;
+      --text-1: #1c1917;
+      --text-2: #57534e;
+      --text-3: #a8a29e;
+      --border: #e7e5e4;
+      --shadow: 0 2px 10px rgba(0,0,0,0.07);
+      --radius: 14px;
       --danger-bg: #fef2f2;
       --danger-border: #fecaca;
       --danger-text: #dc2626;
     }
 
     body.dark {
-      --bg: #0f0a1e;
-      --surface: #1a1030;
-      --primary: #a78bfa;
-      --primary-hover: #8b5cf6;
-      --primary-light: #2e1065;
-      --primary-border: #5b21b6;
-      --text-1: #f1f5f9;
-      --text-2: #94a3b8;
-      --text-3: #475569;
-      --border: #2d2542;
-      --shadow: 0 4px 20px rgba(0,0,0,0.4);
+      --bg: #1c1917;
+      --surface: #292524;
+      --primary: #fb923c;
+      --primary-hover: #f97316;
+      --primary-light: #431407;
+      --primary-border: #7c2d12;
+      --text-1: #fafaf9;
+      --text-2: #a8a29e;
+      --text-3: #57534e;
+      --border: #44403c;
+      --shadow: 0 2px 10px rgba(0,0,0,0.4);
       --danger-bg: #3b0f0f;
       --danger-border: #7f1d1d;
       --danger-text: #fca5a5;
@@ -43,179 +46,179 @@
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       background: var(--bg);
       color: var(--text-1);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      transition: background 0.2s, color 0.2s;
     }
 
     /* ── Header ── */
     header {
-      width: 100%;
       background: var(--surface);
-      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
-      padding: 20px 24px;
-      position: relative;
+      border-bottom: 1px solid var(--border);
+      padding: 16px 24px;
     }
 
     .header-inner {
-      max-width: 1000px;
+      max-width: 1040px;
       margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 14px;
+      justify-content: space-between;
     }
 
-    .header-text h1 {
-      font-size: 1.625rem;
+    .app-name {
+      font-family: 'Fraunces', Georgia, 'Times New Roman', serif;
+      font-style: italic;
       font-weight: 800;
+      font-size: 1.5rem;
       color: var(--primary);
-      letter-spacing: -0.5px;
-      line-height: 1.1;
+      letter-spacing: -0.3px;
+      line-height: 1;
     }
 
-    .header-text p {
-      font-size: 0.875rem;
-      color: var(--text-2);
-      margin-top: 3px;
+    .app-sub {
+      font-size: 0.75rem;
+      color: var(--text-3);
+      margin-top: 4px;
+      letter-spacing: 0.02em;
     }
 
-    .dark-toggle {
-      position: absolute;
-      right: 24px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
+    .dark-btn {
+      width: 36px;
+      height: 36px;
       border: 1.5px solid var(--border);
-      border-radius: 10px;
-      width: 40px;
-      height: 40px;
+      border-radius: 8px;
+      background: none;
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      cursor: pointer;
-      color: var(--text-2);
+      color: var(--text-3);
       transition: all 0.15s;
-      flex-shrink: 0;
     }
 
-    .dark-toggle:hover {
-      background: var(--primary-light);
+    .dark-btn:hover {
       border-color: var(--primary);
       color: var(--primary);
+      background: var(--primary-light);
     }
 
     /* ── Main ── */
     main {
+      max-width: 1040px;
       width: 100%;
-      max-width: 1000px;
-      padding: 32px 20px 60px;
+      margin: 0 auto;
+      padding: 28px 20px 72px;
       flex: 1;
     }
 
-    /* ── Date section ── */
-    .date-section { margin-bottom: 28px; }
-
-    .date-nav {
+    /* ── Controls ── */
+    .controls {
       display: flex;
       align-items: center;
-      gap: 8px;
-      margin-bottom: 18px;
+      gap: 6px;
+      margin-bottom: 22px;
       flex-wrap: wrap;
     }
 
-    .btn-day {
-      width: 40px;
-      height: 40px;
+    .btn-arrow {
+      width: 36px;
+      height: 36px;
       border: 1.5px solid var(--border);
-      border-radius: 10px;
+      border-radius: 7px;
       background: var(--surface);
-      color: var(--text-1);
-      font-size: 1.1rem;
+      color: var(--text-2);
+      font-size: 1rem;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      transition: all 0.15s;
-      flex-shrink: 0;
+      transition: all 0.14s;
     }
 
-    .btn-day:hover {
+    .btn-arrow:hover {
       border-color: var(--primary);
-      background: var(--primary-light);
       color: var(--primary);
+      background: var(--primary-light);
     }
 
     input[type="date"] {
-      padding: 9px 14px;
-      font-size: 0.9375rem;
+      height: 36px;
+      padding: 0 11px;
+      font-size: 0.875rem;
       font-family: inherit;
       color: var(--text-1);
       background: var(--surface);
       border: 1.5px solid var(--border);
-      border-radius: 10px;
+      border-radius: 7px;
       outline: none;
       cursor: pointer;
-      transition: border-color 0.15s;
       color-scheme: light;
+      transition: border-color 0.14s;
     }
 
     body.dark input[type="date"] { color-scheme: dark; }
-
-    input[type="date"]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-    }
+    input[type="date"]:focus { border-color: var(--primary); }
 
     .btn-today {
-      padding: 9px 18px;
-      font-size: 0.875rem;
+      height: 36px;
+      padding: 0 15px;
+      font-size: 0.8125rem;
       font-weight: 600;
       color: var(--primary);
       background: var(--primary-light);
       border: 1.5px solid var(--primary-border);
-      border-radius: 10px;
+      border-radius: 7px;
       cursor: pointer;
-      transition: all 0.15s;
       font-family: inherit;
+      transition: all 0.14s;
+      white-space: nowrap;
     }
 
-    .btn-today:hover { background: var(--primary); color: #fff; }
+    .btn-today:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
 
-    .date-display {
+    /* ── Date heading ── */
+    .date-row {
       display: flex;
-      align-items: center;
+      align-items: baseline;
       gap: 12px;
       flex-wrap: wrap;
-      margin-bottom: 16px;
+      margin-bottom: 18px;
     }
 
     #date-heading {
-      font-size: 1.25rem;
-      font-weight: 700;
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
+      font-weight: 800;
+      font-size: 2rem;
       color: var(--text-1);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
     }
 
-    .count-badge {
+    .count-pill {
       display: none;
-      padding: 4px 14px;
-      background: var(--primary-light);
-      color: var(--primary);
-      border-radius: 999px;
-      font-size: 0.8125rem;
+      font-size: 0.8rem;
       font-weight: 700;
+      color: var(--primary);
+      background: var(--primary-light);
       border: 1.5px solid var(--primary-border);
+      border-radius: 999px;
+      padding: 2px 11px;
     }
 
-    .search-wrapper { position: relative; }
+    /* ── Search ── */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 26px;
+    }
 
-    .search-icon {
+    .search-wrap svg {
       position: absolute;
-      left: 13px;
+      left: 11px;
       top: 50%;
       transform: translateY(-50%);
       color: var(--text-3);
@@ -224,206 +227,202 @@
 
     input[type="search"] {
       width: 100%;
-      padding: 11px 14px 11px 40px;
-      font-size: 0.9375rem;
+      height: 40px;
+      padding: 0 14px 0 36px;
+      font-size: 0.9rem;
       font-family: inherit;
       color: var(--text-1);
       background: var(--surface);
       border: 1.5px solid var(--border);
-      border-radius: 12px;
+      border-radius: 9px;
       outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
+      transition: border-color 0.14s;
     }
 
-    input[type="search"]:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
-    }
+    input[type="search"]:focus { border-color: var(--primary); }
 
     /* ── Loading ── */
     #loading-state {
       text-align: center;
-      padding: 64px 0;
-      color: var(--text-2);
+      padding: 80px 0;
+      color: var(--text-3);
     }
 
     @keyframes spin { to { transform: rotate(360deg); } }
 
     .spinner {
-      width: 36px;
-      height: 36px;
-      border: 3px solid var(--primary-light);
+      width: 30px;
+      height: 30px;
+      border: 2.5px solid var(--border);
       border-top-color: var(--primary);
       border-radius: 50%;
-      animation: spin 0.75s linear infinite;
-      margin: 0 auto 16px;
+      animation: spin 0.7s linear infinite;
+      margin: 0 auto 14px;
     }
 
-    #loading-state p { font-size: 0.9375rem; font-weight: 500; }
+    #loading-state p { font-size: 0.875rem; }
 
-    /* ── Grid ── */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
+    /* ── Card grid ── */
+    @keyframes popIn {
+      from { opacity: 0; transform: scale(0.92) translateY(6px); }
+      to   { opacity: 1; transform: scale(1) translateY(0); }
     }
 
-    .holidays-grid {
+    .grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 14px;
+      grid-template-columns: repeat(auto-fill, minmax(178px, 1fr));
+      gap: 12px;
     }
 
-    .holiday-card {
-      background: var(--surface);
+    /* Each card is a "stamp" — colored top with emoji, white body with name */
+    .stamp {
       border-radius: var(--radius);
+      overflow: hidden;
       box-shadow: var(--shadow);
-      padding: 24px 16px 16px;
       display: flex;
       flex-direction: column;
+      animation: popIn 0.26s ease both;
+      transition: transform 0.18s, box-shadow 0.18s;
+      border: 1.5px solid rgba(0,0,0,0.04);
+    }
+
+    .stamp:hover {
+      transform: translateY(-3px) rotate(-0.4deg);
+      box-shadow: 0 10px 28px rgba(0,0,0,0.12);
+    }
+
+    body.dark .stamp { border-color: rgba(255,255,255,0.05); }
+
+    .stamp-top {
+      padding: 20px 10px 16px;
+      display: flex;
       align-items: center;
-      text-align: center;
-      gap: 10px;
-      animation: fadeUp 0.3s ease both;
-      border: 1.5px solid transparent;
-      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      justify-content: center;
     }
 
-    .holiday-card:hover {
-      border-color: var(--primary-border);
-      box-shadow: 0 6px 28px rgba(124,58,237,0.14);
-      transform: translateY(-2px);
-    }
-
-    .holiday-emoji {
-      font-size: 2.75rem;
+    .stamp-emoji {
+      font-size: 2.4rem;
       line-height: 1;
+      filter: drop-shadow(0 1px 3px rgba(0,0,0,0.1));
     }
 
-    .holiday-name {
-      font-size: 0.875rem;
+    .stamp-body {
+      background: var(--surface);
+      padding: 13px 13px 11px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .stamp-name {
+      font-size: 0.8rem;
       font-weight: 700;
       color: var(--text-1);
-      line-height: 1.35;
-      flex: 1;
+      line-height: 1.38;
+      text-align: center;
     }
 
-    .card-actions {
+    .stamp-btns {
       display: flex;
-      gap: 6px;
-      width: 100%;
-      margin-top: 4px;
+      gap: 5px;
+      margin-top: auto;
     }
 
     .btn-learn {
       flex: 1;
-      padding: 8px 6px;
-      font-size: 0.8rem;
+      height: 28px;
+      font-size: 0.72rem;
       font-weight: 600;
-      color: #fff;
-      background: var(--primary);
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      transition: background 0.15s;
-    }
-
-    .btn-learn:hover { background: var(--primary-hover); }
-
-    .btn-share {
-      width: 34px;
-      height: 34px;
-      flex-shrink: 0;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--bg);
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      color: var(--text-2);
-      transition: all 0.15s;
-      font-family: inherit;
-      font-size: 0.875rem;
-    }
-
-    .btn-share:hover {
-      background: var(--primary-light);
-      border-color: var(--primary-border);
       color: var(--primary);
+      background: var(--primary-light);
+      border: 1.5px solid var(--primary-border);
+      border-radius: 5px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+      text-decoration: none;
+      transition: all 0.14s;
     }
 
-    .btn-share.copied {
-      background: #f0fdf4;
-      border-color: #bbf7d0;
-      color: #16a34a;
+    .btn-learn:hover { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+    .btn-copy {
+      width: 28px;
+      height: 28px;
+      flex-shrink: 0;
+      border: 1.5px solid var(--border);
+      border-radius: 5px;
+      background: none;
+      color: var(--text-3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.14s;
+      font-size: 0.72rem;
+      font-family: inherit;
     }
+
+    .btn-copy:hover { border-color: var(--primary); color: var(--primary); background: var(--primary-light); }
+
+    .btn-copy.ok { border-color: #86efac; color: #16a34a; background: #f0fdf4; }
 
     /* ── States ── */
-    #empty-state, #error-state {
-      text-align: center;
-      padding: 56px 20px;
-    }
+    #empty-state, #error-state { padding: 64px 20px; text-align: center; }
 
-    .state-emoji { font-size: 3rem; display: block; margin-bottom: 14px; }
-    .state-title { font-size: 1.125rem; font-weight: 700; color: var(--text-1); margin-bottom: 8px; }
-    .state-body  { font-size: 0.9375rem; color: var(--text-2); }
+    .state-emoji { font-size: 2.4rem; margin-bottom: 12px; }
+    .state-title { font-size: 1rem; font-weight: 700; color: var(--text-1); margin-bottom: 6px; }
+    .state-msg   { font-size: 0.875rem; color: var(--text-2); line-height: 1.65; max-width: 380px; margin: 0 auto; }
 
     .error-box {
       background: var(--danger-bg);
       border: 1.5px solid var(--danger-border);
-      border-radius: 12px;
+      border-radius: 10px;
       padding: 16px 20px;
       color: var(--danger-text);
       font-size: 0.875rem;
-      max-width: 480px;
+      max-width: 440px;
       margin: 0 auto;
-      line-height: 1.6;
+      line-height: 1.65;
+      text-align: left;
     }
 
     /* ── Footer ── */
     footer {
-      width: 100%;
       background: var(--surface);
       border-top: 1px solid var(--border);
-      padding: 28px 20px;
+      padding: 22px 20px;
       text-align: center;
     }
 
-    .footer-brand {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      margin-bottom: 10px;
-    }
-
-    .footer-brand-name {
-      font-size: 1rem;
+    .footer-name {
+      font-family: 'Fraunces', Georgia, serif;
+      font-style: italic;
       font-weight: 800;
+      font-size: 0.9375rem;
       color: var(--primary);
+      margin-bottom: 4px;
     }
 
-    .footer-copy {
-      font-size: 0.8125rem;
+    .footer-note {
+      font-size: 0.78rem;
       color: var(--text-3);
       line-height: 1.7;
     }
 
-    .footer-copy a { color: var(--primary); text-decoration: none; }
-    .footer-copy a:hover { text-decoration: underline; }
+    .footer-note a { color: var(--primary); text-decoration: none; }
+    .footer-note a:hover { text-decoration: underline; }
 
     /* ── Responsive ── */
     @media (max-width: 540px) {
-      .header-text h1 { font-size: 1.25rem; }
-      .holidays-grid { grid-template-columns: repeat(2, 1fr); }
+      #date-heading { font-size: 1.5rem; }
+      .grid { grid-template-columns: repeat(2, 1fr); }
     }
 
-    @media (max-width: 320px) {
-      .holidays-grid { grid-template-columns: 1fr; }
+    @media (max-width: 300px) {
+      .grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -431,55 +430,45 @@
 
 <header>
   <div class="header-inner">
-    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
-      <rect width="44" height="44" rx="11" fill="#7c3aed"/>
-      <rect x="8" y="13" width="28" height="22" rx="3" fill="none" stroke="white" stroke-width="2.5"/>
-      <line x1="8" y1="21" x2="36" y2="21" stroke="white" stroke-width="2"/>
-      <line x1="15" y1="9" x2="15" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="29" y1="9" x2="29" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M22 25l1.3 2.6 2.8.4-2 1.95.47 2.8L22 31.4l-2.57 1.35.47-2.8-2-1.95 2.8-.4z" fill="white"/>
-    </svg>
-    <div class="header-text">
-      <h1>Is Today a Holiday?</h1>
-      <p>Every day is a reason to celebrate</p>
+    <div>
+      <div class="app-name">Is Today a Holiday?</div>
+      <div class="app-sub">Every day is a reason to celebrate</div>
     </div>
+    <button class="dark-btn" id="dark-btn" onclick="toggleDark()" aria-label="Toggle dark mode"></button>
   </div>
-  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" aria-label="Toggle dark mode"></button>
 </header>
 
 <main>
-  <div class="date-section">
-    <div class="date-nav">
-      <button class="btn-day" id="prev-day" aria-label="Previous day" title="Previous day">&#8592;</button>
-      <input type="date" id="date-input" />
-      <button class="btn-day" id="next-day" aria-label="Next day" title="Next day">&#8594;</button>
-      <button class="btn-today" id="today-btn">Today</button>
-    </div>
+  <div class="controls">
+    <button class="btn-arrow" id="prev-day" aria-label="Previous day">&#8592;</button>
+    <input type="date" id="date-input" />
+    <button class="btn-arrow" id="next-day" aria-label="Next day">&#8594;</button>
+    <button class="btn-today" id="today-btn">Today</button>
+  </div>
 
-    <div class="date-display">
-      <h2 id="date-heading"></h2>
-      <span class="count-badge" id="holiday-count"></span>
-    </div>
+  <div class="date-row">
+    <h2 id="date-heading"></h2>
+    <span class="count-pill" id="count-pill"></span>
+  </div>
 
-    <div class="search-wrapper">
-      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
-      </svg>
-      <input type="search" id="search-input" placeholder="Search today's holidays…" aria-label="Search holidays" />
-    </div>
+  <div class="search-wrap">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input type="search" id="search-input" placeholder="Search today's holidays…" />
   </div>
 
   <div id="loading-state">
     <div class="spinner"></div>
-    <p>Loading holidays…</p>
+    <p>Fetching today's celebrations…</p>
   </div>
 
-  <div id="holidays-grid" class="holidays-grid" style="display:none"></div>
+  <div id="grid" class="grid" style="display:none"></div>
 
   <div id="empty-state" style="display:none">
-    <span class="state-emoji">🔍</span>
-    <p class="state-title">No matches</p>
-    <p class="state-body" id="empty-msg"></p>
+    <div class="state-emoji">🔍</div>
+    <p class="state-title">Nothing found</p>
+    <p class="state-msg" id="empty-msg"></p>
   </div>
 
   <div id="error-state" style="display:none">
@@ -488,406 +477,262 @@
 </main>
 
 <footer>
-  <div class="footer-brand">
-    <svg width="28" height="28" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <rect width="44" height="44" rx="11" fill="#7c3aed"/>
-      <rect x="8" y="13" width="28" height="22" rx="3" fill="none" stroke="white" stroke-width="2.5"/>
-      <line x1="8" y1="21" x2="36" y2="21" stroke="white" stroke-width="2"/>
-      <line x1="15" y1="9" x2="15" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <line x1="29" y1="9" x2="29" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
-      <path d="M22 25l1.3 2.6 2.8.4-2 1.95.47 2.8L22 31.4l-2.57 1.35.47-2.8-2-1.95 2.8-.4z" fill="white"/>
-    </svg>
-    <span class="footer-brand-name">Is Today a Holiday?</span>
-  </div>
-  <p class="footer-copy">Holiday data powered by <a href="https://www.checkiday.com" target="_blank" rel="noopener">Checkiday</a></p>
-  <p class="footer-copy">&copy; 2026 Is Today a Holiday?</p>
+  <p class="footer-name">Is Today a Holiday?</p>
+  <p class="footer-note">Holiday data from <a href="https://www.checkiday.com" target="_blank" rel="noopener">Checkiday</a></p>
+  <p class="footer-note">&copy; 2026</p>
 </footer>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────────────────────
-  const CHECKIDAY_API_KEY = 'EHwfsylcF5kVVWe79uxXZ1B68XwOfXpY';
+  const API_KEY = 'EHwfsylcF5kVVWe79uxXZ1B68XwOfXpY';
 
-  // ─── EMOJI DETECTION ──────────────────────────────────────────────────────
-  const EMOJI_RULES = [
-    [['donut','doughnut'], '🍩'],
-    [['pizza'], '🍕'],
-    [['chocolate','cocoa'], '🍫'],
-    [['coffee','espresso','cappuccino','latte','mocha'], '☕'],
-    [['beer','brew','ale','lager','stout','ipa'], '🍺'],
-    [['wine','champagne'], '🥂'],
-    [['tea','chai'], '🍵'],
-    [['ice cream','gelato','frozen yogurt','soft serve'], '🍦'],
-    [['cake','cupcake'], '🎂'],
-    [['cookie','biscuit'], '🍪'],
-    [['pie'], '🥧'],
-    [['candy','caramel','gummy','lollipop','licorice'], '🍬'],
-    [['waffle'], '🧇'],
-    [['pancake','crepe'], '🥞'],
-    [['egg','omelet','omelette'], '🥚'],
-    [['taco'], '🌮'],
-    [['burger','hamburger'], '🍔'],
-    [['hot dog','hotdog'], '🌭'],
-    [['sandwich','sub','hoagie'], '🥪'],
-    [['soup','stew','chowder','chili'], '🍲'],
-    [['salad'], '🥗'],
-    [['ramen','noodle','noodles','sushi','sashimi'], '🍜'],
-    [['pasta','spaghetti','lasagna'], '🍝'],
-    [['bread','toast','bagel','muffin'], '🍞'],
-    [['pretzel'], '🥨'],
-    [['popcorn'], '🍿'],
-    [['cheese'], '🧀'],
-    [['nacho','chip','salsa'], '🌽'],
-    [['avocado'], '🥑'],
-    [['banana'], '🍌'],
-    [['apple'], '🍎'],
-    [['lemon','lime','citrus'], '🍋'],
-    [['strawberry','berry','blueberry','raspberry'], '🍓'],
-    [['grape'], '🍇'],
-    [['watermelon','melon'], '🍉'],
-    [['pineapple'], '🍍'],
-    [['coconut'], '🥥'],
-    [['mushroom'], '🍄'],
-    [['carrot','vegetable'], '🥕'],
-    [['milk','dairy'], '🥛'],
-    [['honey'], '🍯'],
-    [['peanut','almond','walnut','cashew','nut'], '🥜'],
-    [['margarita','cocktail','mojito','mimosa'], '🍹'],
-    [['bourbon','whiskey','whisky','scotch'], '🥃'],
-    [['vodka','gin','rum','tequila'], '🍸'],
-    [['lemonade','juice','smoothie'], '🥤'],
-    [['cat','kitten','feline','kitty'], '🐱'],
-    [['dog','puppy','canine','hound'], '🐶'],
-    [['owl'], '🦉'],
-    [['bird','eagle','hawk','sparrow','robin','parrot'], '🐦'],
-    [['fish','salmon','tuna','trout'], '🐟'],
-    [['dolphin','whale'], '🐬'],
-    [['butterfly'], '🦋'],
-    [['bee','honeybee'], '🐝'],
-    [['turtle','tortoise'], '🐢'],
-    [['elephant'], '🐘'],
-    [['lion','tiger','leopard','cheetah'], '🦁'],
-    [['bear','panda','grizzly'], '🐻'],
-    [['monkey','gorilla','chimp'], '🐒'],
-    [['horse','pony','equine','donkey'], '🐴'],
-    [['cow','bull','cattle'], '🐄'],
-    [['pig','pork','swine'], '🐷'],
-    [['chicken','hen','rooster'], '🐔'],
-    [['turkey'], '🦃'],
-    [['frog','toad'], '🐸'],
-    [['snake','reptile','python'], '🐍'],
-    [['bat'], '🦇'],
-    [['spider','tarantula'], '🕷️'],
-    [['ant','insect','bug'], '🐜'],
-    [['wolf'], '🐺'],
-    [['fox'], '🦊'],
-    [['deer','reindeer'], '🦌'],
-    [['rabbit','bunny','hare'], '🐰'],
-    [['duck'], '🦆'],
-    [['penguin'], '🐧'],
-    [['flamingo'], '🦩'],
-    [['octopus','squid'], '🐙'],
-    [['crab','lobster'], '🦀'],
-    [['shark'], '🦈'],
-    [['sloth'], '🦥'],
-    [['otter'], '🦦'],
-    [['hedgehog'], '🦔'],
-    [['carnivorous plant','venus fly','pitcher plant'], '🪴'],
-    [['flower','rose','tulip','daisy','lily','orchid','sunflower'], '🌸'],
-    [['tree','forest','woodland'], '🌲'],
-    [['plant','herb','fern','succulent'], '🌿'],
-    [['cactus'], '🌵'],
-    [['earth day','environment','ecosystem','planet'], '🌍'],
-    [['ocean','sea','marine','coast','coral'], '🌊'],
-    [['mountain','hiking','hill'], '⛰️'],
-    [['rain','storm','thunder','umbrella'], '🌧️'],
-    [['snow','winter','ice','frost','blizzard'], '❄️'],
-    [['fire','flame','campfire'], '🔥'],
-    [['lightning','electric'], '⚡'],
-    [['rainbow'], '🌈'],
-    [['sun','solar','sunshine'], '☀️'],
-    [['moon','lunar'], '🌙'],
-    [['star','stargazing'], '⭐'],
-    [['recycle','green day','eco','sustain'], '♻️'],
-    [['football','soccer'], '⚽'],
-    [['basketball'], '🏀'],
-    [['baseball','softball'], '⚾'],
-    [['golf'], '⛳'],
-    [['tennis'], '🎾'],
-    [['swim','swimming'], '🏊'],
-    [['marathon','5k','10k'], '🏃'],
-    [['bike','cycling','bicycle'], '🚴'],
-    [['hike','trek','trail'], '🥾'],
-    [['yoga','meditation'], '🧘'],
-    [['dance','ballet'], '💃'],
-    [['music','song','jazz','blues','rock','gospel','folk','sing'], '🎵'],
-    [['guitar','piano','violin','drum','trumpet'], '🎸'],
-    [['art','paint','draw','watercolor','sculpture'], '🎨'],
-    [['photography','camera'], '📷'],
-    [['cinema','movie','film'], '🎬'],
-    [['theater','theatre','drama'], '🎭'],
-    [['book','read','library','literature','novel','author','poetry','poet'], '📚'],
-    [['science','laboratory','chemistry','biology','physics'], '🔬'],
-    [['technology','computer','internet','coding','programming'], '💻'],
-    [['robot','artificial intelligence'], '🤖'],
-    [['video game','arcade','gaming'], '🎮'],
-    [['chess'], '♟️'],
-    [['bowling'], '🎳'],
-    [['ski','skiing','snowboard'], '⛷️'],
-    [['surf','surfing'], '🏄'],
-    [['mother','mom','mum','maternal'], '👩'],
-    [['father','dad','paternal'], '👨'],
-    [['child','kid','youth','children'], '🧒'],
-    [['baby','infant','newborn'], '👶'],
-    [['veteran','military','armed force'], '🎖️'],
-    [['nurse','doctor','medical','physician'], '👨‍⚕️'],
-    [['teacher','education','school'], '👨‍🏫'],
-    [['farmer','agriculture'], '👨‍🌾'],
-    [['volunteer','charity','donate'], '🤝'],
-    [['friendship','best friend'], '🤝'],
-    [['love','romance','valentine'], '❤️'],
-    [['peace','harmony'], '🕊️'],
-    [['pride','lgbtq'], '🏳️‍🌈'],
-    [['worker','labor','work'], '👷'],
-    [['christmas','xmas'], '🎄'],
-    [['halloween'], '🎃'],
-    [['thanksgiving'], '🦃'],
-    [['easter'], '🐣'],
-    [['hanukkah','chanukah'], '🕎'],
-    [['diwali','deepavali'], '🪔'],
-    [['new year'], '🎆'],
-    [['birthday'], '🎂'],
-    [['anniversary'], '💍'],
-    [['wedding','marriage','bride'], '💒'],
-    [['graduation','graduate'], '🎓'],
-    [['independence','freedom','liberty'], '🗽'],
-    [['america','usa','united states'], '🇺🇸'],
-    [['prayer','spiritual','faith','religion','holy','sacred'], '🙏'],
-    [['world','global','international'], '🌍'],
-    [['laugh','humor','comedy','joke','silly'], '😄'],
-    [['clean','tidy','organize'], '🧹'],
-    [['garden','gardening'], '🌻'],
-    [['space','cosmos','galaxy','universe','nasa','rocket','astronaut'], '🚀'],
-    [['money','wealth','financial','economy'], '💰'],
-    [['shopping','shop'], '🛍️'],
-    [['travel','vacation','tourist'], '✈️'],
-    [['puzzle','brain','mind'], '🧩'],
-    [['sleep','nap','rest'], '😴'],
-    [['happiness','joy','happy'], '😊'],
-    [['hug','cuddle'], '🤗'],
-    [['award','prize','trophy','champion'], '🏆'],
-    [['carnival','fair','circus'], '🎡'],
-    [['firework','fireworks'], '🎆'],
-    [['balloon'], '🎈'],
-    [['gift','present'], '🎁'],
-    [['hat'], '🎩'],
-    [['superhero','comic'], '🦸'],
-    [['pirate'], '🏴‍☠️'],
-    [['alien','ufo'], '👽'],
-    [['dragon'], '🐉'],
-    [['unicorn'], '🦄'],
-    [['magic','sorcery','wizard','witch'], '🧙'],
-    [['fairy'], '🧚'],
-    [['ghost'], '👻'],
-    [['vampire'], '🧛'],
-    [['mermaid'], '🧜'],
-    [['run','running'], '🏃'],
-    [['walk','walking','pedestrian'], '🚶'],
-    [['tattoo'], '💉'],
-    [['selfie','social media'], '🤳'],
-    [['candle'], '🕯️'],
-    [['confetti','celebrate','festiv','party'], '🎉'],
+  // Stamp top background colors, light + dark variants
+  const TOPS_LIGHT = ['#fef3c7','#fce7f3','#dbeafe','#dcfce7','#f3e8ff','#ffedd5','#cffafe'];
+  const TOPS_DARK  = ['#451a03','#500724','#1e3a5f','#14532d','#3b0764','#431407','#164e63'];
+
+  // ── Emoji detection ───────────────────────────────────────────────────────
+  const ER = [
+    [['donut','doughnut'],'🍩'],[['pizza'],'🍕'],[['chocolate','cocoa'],'🍫'],
+    [['coffee','espresso','cappuccino','latte','mocha'],'☕'],[['beer','brew','ale','lager'],'🍺'],
+    [['wine','champagne'],'🥂'],[['tea','chai'],'🍵'],[['ice cream','gelato','frozen yogurt'],'🍦'],
+    [['cake','cupcake'],'🎂'],[['cookie','biscuit'],'🍪'],[['pie'],'🥧'],
+    [['candy','caramel','gummy','lollipop'],'🍬'],[['waffle'],'🧇'],[['pancake','crepe'],'🥞'],
+    [['egg','omelet'],'🥚'],[['taco'],'🌮'],[['burger','hamburger'],'🍔'],
+    [['hot dog'],'🌭'],[['sandwich','sub'],'🥪'],[['soup','stew','chowder','chili'],'🍲'],
+    [['salad'],'🥗'],[['ramen','noodle','sushi','sashimi'],'🍜'],[['pasta','spaghetti'],'🍝'],
+    [['bread','toast','bagel','muffin'],'🍞'],[['pretzel'],'🥨'],[['popcorn'],'🍿'],
+    [['cheese'],'🧀'],[['avocado'],'🥑'],[['banana'],'🍌'],[['apple'],'🍎'],
+    [['lemon','lime','citrus'],'🍋'],[['strawberry','berry'],'🍓'],[['grape'],'🍇'],
+    [['watermelon'],'🍉'],[['pineapple'],'🍍'],[['coconut'],'🥥'],[['mushroom'],'🍄'],
+    [['carrot','vegetable'],'🥕'],[['milk','dairy'],'🥛'],[['honey'],'🍯'],
+    [['peanut','almond','walnut','nut'],'🥜'],[['cocktail','mojito','mimosa'],'🍹'],
+    [['bourbon','whiskey','scotch'],'🥃'],[['lemonade','juice','smoothie'],'🥤'],
+    [['cat','kitten','feline'],'🐱'],[['dog','puppy','canine'],'🐶'],[['owl'],'🦉'],
+    [['bird','eagle','hawk','sparrow','parrot'],'🐦'],[['fish','salmon','tuna'],'🐟'],
+    [['dolphin','whale'],'🐬'],[['butterfly'],'🦋'],[['bee'],'🐝'],[['turtle','tortoise'],'🐢'],
+    [['elephant'],'🐘'],[['lion','tiger','leopard'],'🦁'],[['bear','panda'],'🐻'],
+    [['monkey','gorilla'],'🐒'],[['horse','pony','equine'],'🐴'],[['cow','bull'],'🐄'],
+    [['pig','pork'],'🐷'],[['chicken','hen','rooster'],'🐔'],[['turkey'],'🦃'],
+    [['frog','toad'],'🐸'],[['snake','reptile'],'🐍'],[['bat'],'🦇'],[['spider'],'🕷️'],
+    [['ant','insect','bug'],'🐜'],[['wolf'],'🐺'],[['fox'],'🦊'],[['deer','reindeer'],'🦌'],
+    [['rabbit','bunny','hare'],'🐰'],[['duck'],'🦆'],[['penguin'],'🐧'],[['flamingo'],'🦩'],
+    [['octopus','squid'],'🐙'],[['crab','lobster'],'🦀'],[['shark'],'🦈'],[['sloth'],'🦥'],
+    [['otter'],'🦦'],[['hedgehog'],'🦔'],[['carnivorous plant','venus fly','pitcher plant'],'🪴'],
+    [['flower','rose','tulip','daisy','lily','orchid','sunflower'],'🌸'],
+    [['tree','forest','woodland'],'🌲'],[['plant','herb','fern','succulent'],'🌿'],[['cactus'],'🌵'],
+    [['earth day','environment','planet'],'🌍'],[['ocean','sea','marine','coral'],'🌊'],
+    [['mountain','hiking'],'⛰️'],[['rain','storm','thunder','umbrella'],'🌧️'],
+    [['snow','winter','ice','frost','blizzard'],'❄️'],[['fire','flame','campfire'],'🔥'],
+    [['rainbow'],'🌈'],[['sun','solar','sunshine'],'☀️'],[['moon','lunar'],'🌙'],
+    [['star','stargazing'],'⭐'],[['recycle','green','eco','sustain'],'♻️'],
+    [['football','soccer'],'⚽'],[['basketball'],'🏀'],[['baseball'],'⚾'],[['golf'],'⛳'],
+    [['tennis'],'🎾'],[['swim','swimming'],'🏊'],[['marathon','5k','10k'],'🏃'],
+    [['bike','cycling'],'🚴'],[['hike','trek','trail'],'🥾'],[['yoga','meditation'],'🧘'],
+    [['dance','ballet'],'💃'],[['music','song','jazz','blues','rock','folk','sing'],'🎵'],
+    [['guitar','piano','violin','drum'],'🎸'],[['art','paint','draw','watercolor'],'🎨'],
+    [['photography','camera'],'📷'],[['cinema','movie','film'],'🎬'],
+    [['theater','theatre','drama'],'🎭'],
+    [['book','read','library','literature','novel','poetry'],'📚'],
+    [['science','chemistry','biology','physics'],'🔬'],
+    [['computer','coding','programming','internet'],'💻'],[['robot'],'🤖'],
+    [['video game','arcade','gaming'],'🎮'],[['chess'],'♟️'],[['bowling'],'🎳'],
+    [['ski','skiing'],'⛷️'],[['surf','surfing'],'🏄'],
+    [['mother','mom','mum'],'👩'],[['father','dad'],'👨'],[['child','kid','youth'],'🧒'],
+    [['baby','infant','newborn'],'👶'],[['veteran','military'],'🎖️'],
+    [['nurse','doctor','medical'],'👨‍⚕️'],[['teacher','education','school'],'👨‍🏫'],
+    [['farmer','agriculture'],'👨‍🌾'],[['volunteer','charity','donate'],'🤝'],
+    [['friendship','best friend'],'🫂'],[['love','romance','valentine'],'❤️'],
+    [['peace','harmony'],'🕊️'],[['christmas','xmas'],'🎄'],[['halloween'],'🎃'],
+    [['thanksgiving'],'🦃'],[['easter'],'🐣'],[['hanukkah','chanukah'],'🕎'],
+    [['diwali'],'🪔'],[['new year'],'🎆'],[['birthday'],'🎂'],[['anniversary'],'💍'],
+    [['wedding','marriage','bride'],'💒'],[['graduation'],'🎓'],
+    [['independence','freedom','liberty'],'🗽'],[['america','usa','united states'],'🇺🇸'],
+    [['prayer','spiritual','faith','religion','holy','sacred'],'🙏'],
+    [['laugh','humor','comedy','joke'],'😄'],[['clean','tidy','organize'],'🧹'],
+    [['garden','gardening'],'🌻'],[['space','cosmos','galaxy','rocket','astronaut'],'🚀'],
+    [['shopping','shop'],'🛍️'],[['travel','vacation','tourist'],'✈️'],
+    [['puzzle'],'🧩'],[['sleep','nap'],'😴'],[['happiness','joy','happy'],'😊'],
+    [['hug'],'🤗'],[['award','trophy','champion'],'🏆'],[['carnival','circus'],'🎡'],
+    [['firework','fireworks'],'🎆'],[['balloon'],'🎈'],[['gift','present'],'🎁'],
+    [['superhero'],'🦸'],[['pirate'],'🏴‍☠️'],[['alien','ufo'],'👽'],[['dragon'],'🐉'],
+    [['unicorn'],'🦄'],[['magic','wizard','witch'],'🧙'],[['fairy'],'🧚'],[['ghost'],'👻'],
+    [['vampire'],'🧛'],[['mermaid'],'🧜'],[['tattoo'],'💉'],[['candle'],'🕯️'],
+    [['confetti','celebrate','festiv','party'],'🎉'],[['run','running'],'🏃'],
   ];
 
   function getEmoji(name) {
     const n = name.toLowerCase();
-    for (const [keywords, emoji] of EMOJI_RULES) {
-      if (keywords.some(k => n.includes(k))) return emoji;
-    }
+    for (const [kw, e] of ER) if (kw.some(k => n.includes(k))) return e;
     return '🎉';
   }
 
-  // ─── DATE UTILITIES ───────────────────────────────────────────────────────
-  function todayValue() {
+  // ── Date helpers ──────────────────────────────────────────────────────────
+  const pad = n => String(n).padStart(2, '0');
+
+  function todayVal() {
     const d = new Date();
-    return [
-      d.getFullYear(),
-      String(d.getMonth() + 1).padStart(2, '0'),
-      String(d.getDate()).padStart(2, '0'),
-    ].join('-');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
   }
 
   function toApiDate(v) {
-    const [y, m, d] = v.split('-');
+    const [y,m,d] = v.split('-');
     return `${m}/${d}/${y}`;
   }
 
-  function formatHeading(v) {
-    const [y, m, d] = v.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('en-US', {
-      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-    });
+  function fmt(v) {
+    const [y,m,d] = v.split('-').map(Number);
+    return new Date(y,m-1,d).toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   }
 
-  function shiftDate(v, days) {
-    const [y, m, d] = v.split('-').map(Number);
-    const dt = new Date(y, m - 1, d + days);
-    return [
-      dt.getFullYear(),
-      String(dt.getMonth() + 1).padStart(2, '0'),
-      String(dt.getDate()).padStart(2, '0'),
-    ].join('-');
+  function shift(v, n) {
+    const [y,m,d] = v.split('-').map(Number);
+    const dt = new Date(y,m-1,d+n);
+    return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
   }
 
-  // ─── STATE ────────────────────────────────────────────────────────────────
-  let allHolidays = [];
-  let currentDate = todayValue();
+  // ── State ─────────────────────────────────────────────────────────────────
+  let all = [], cur = todayVal();
 
-  const loadingEl  = document.getElementById('loading-state');
-  const gridEl     = document.getElementById('holidays-grid');
-  const emptyEl    = document.getElementById('empty-state');
-  const errorEl    = document.getElementById('error-state');
-  const headingEl  = document.getElementById('date-heading');
-  const countEl    = document.getElementById('holiday-count');
-  const searchEl   = document.getElementById('search-input');
-  const dateInput  = document.getElementById('date-input');
+  const $ = id => document.getElementById(id);
+  const loadEl = $('loading-state'), gridEl = $('grid');
+  const emptyEl = $('empty-state'), errEl = $('error-state');
 
-  function showState(s) {
-    loadingEl.style.display = s === 'loading' ? '' : 'none';
-    gridEl.style.display    = s === 'grid'    ? '' : 'none';
-    emptyEl.style.display   = s === 'empty'   ? '' : 'none';
-    errorEl.style.display   = s === 'error'   ? '' : 'none';
+  function show(s) {
+    loadEl.style.display  = s==='load'  ? '':'none';
+    gridEl.style.display  = s==='grid'  ? '':'none';
+    emptyEl.style.display = s==='empty' ? '':'none';
+    errEl.style.display   = s==='err'   ? '':'none';
   }
 
-  // ─── FETCH ────────────────────────────────────────────────────────────────
-  async function loadHolidays(date) {
-    currentDate = date;
-    dateInput.value = date;
-    headingEl.textContent = formatHeading(date);
-    countEl.style.display = 'none';
-    searchEl.value = '';
-    showState('loading');
+  // ── Fetch ─────────────────────────────────────────────────────────────────
+  async function load(date) {
+    cur = date;
+    $('date-input').value = date;
+    $('date-heading').textContent = fmt(date);
+    $('count-pill').style.display = 'none';
+    $('search-input').value = '';
+    show('load');
 
     try {
-      const res = await fetch(
-        `https://api.checkiday.com/3/events?date=${encodeURIComponent(toApiDate(date))}`,
-        { headers: { 'x-api-key': CHECKIDAY_API_KEY } }
-      );
+      const target = `https://api.checkiday.com/3/events?date=${encodeURIComponent(toApiDate(date))}`;
+      const res = await fetch(`https://corsproxy.io/?${encodeURIComponent(target)}`, {
+        headers: { 'x-api-key': API_KEY }
+      });
 
       if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `HTTP ${res.status}`);
+        const e = await res.json().catch(() => ({}));
+        throw new Error(e.error || `HTTP ${res.status}`);
       }
 
       const data = await res.json();
-      allHolidays = data.events || [];
+      all = data.events || [];
 
-      countEl.textContent = `${allHolidays.length} holiday${allHolidays.length !== 1 ? 's' : ''}`;
-      countEl.style.display = 'inline-block';
-      renderFiltered('');
-    } catch (err) {
-      showState('error');
-      document.getElementById('error-box').innerHTML =
-        `<strong>Could not load holidays.</strong><br>${escHtml(err.message)}<br><br>Check that your API key is set in the script and that you have an active Checkiday subscription.`;
+      const pill = $('count-pill');
+      pill.textContent = `${all.length} holiday${all.length !== 1 ? 's' : ''}`;
+      pill.style.display = 'inline-block';
+      render('');
+    } catch (e) {
+      show('err');
+      $('error-box').innerHTML = `<strong>Could not load holidays.</strong><br>${esc(e.message)}`;
     }
   }
 
-  // ─── RENDER ───────────────────────────────────────────────────────────────
-  function renderFiltered(query) {
-    const q = query.toLowerCase().trim();
-    const list = q ? allHolidays.filter(h => h.name.toLowerCase().includes(q)) : allHolidays;
+  // ── Render ────────────────────────────────────────────────────────────────
+  function render(q) {
+    const list = q ? all.filter(h => h.name.toLowerCase().includes(q.toLowerCase())) : all;
 
-    if (allHolidays.length === 0) {
-      showState('empty');
-      document.getElementById('empty-msg').textContent = 'No holidays found for this date.';
+    if (!all.length) {
+      show('empty');
+      $('empty-msg').textContent = 'No holidays found for this date.';
+      return;
+    }
+    if (!list.length) {
+      show('empty');
+      $('empty-msg').textContent = `No results for "${q}" — try a different search.`;
       return;
     }
 
-    if (list.length === 0) {
-      showState('empty');
-      document.getElementById('empty-msg').textContent =
-        `No holidays match "${query}". Try a different search.`;
-      return;
-    }
+    const dark = document.body.classList.contains('dark');
+    const tops = dark ? TOPS_DARK : TOPS_LIGHT;
 
     gridEl.innerHTML = '';
     list.forEach((h, i) => {
-      const card = document.createElement('div');
-      card.className = 'holiday-card';
-      card.style.animationDelay = `${Math.min(i * 25, 400)}ms`;
-      card.dataset.name = h.name;
-      card.dataset.url  = h.url;
+      const el = document.createElement('div');
+      el.className = 'stamp';
+      el.dataset.name = h.name;
+      el.dataset.url  = h.url;
+      el.style.animationDelay = `${Math.min(i * 20, 360)}ms`;
 
-      card.innerHTML = `
-        <div class="holiday-emoji" aria-hidden="true">${getEmoji(h.name)}</div>
-        <div class="holiday-name">${escHtml(h.name)}</div>
-        <div class="card-actions">
-          <a class="btn-learn" href="${escHtml(h.url)}" target="_blank" rel="noopener">
-            Learn more
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
-            </svg>
-          </a>
-          <button class="btn-share" onclick="shareHoliday(this)" title="Copy to clipboard" aria-label="Share ${escHtml(h.name)}">
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-            </svg>
-          </button>
+      el.innerHTML = `
+        <div class="stamp-top" style="background:${tops[i % tops.length]}">
+          <span class="stamp-emoji" role="img" aria-hidden="true">${getEmoji(h.name)}</span>
+        </div>
+        <div class="stamp-body">
+          <div class="stamp-name">${esc(h.name)}</div>
+          <div class="stamp-btns">
+            <a class="btn-learn" href="${esc(h.url)}" target="_blank" rel="noopener">
+              Learn more
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+              </svg>
+            </a>
+            <button class="btn-copy" onclick="copyCard(this)" title="Copy to clipboard">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+              </svg>
+            </button>
+          </div>
         </div>`;
 
-      gridEl.appendChild(card);
+      gridEl.appendChild(el);
     });
 
-    showState('grid');
+    show('grid');
   }
 
-  function shareHoliday(btn) {
-    const card = btn.closest('.holiday-card');
-    const emoji = getEmoji(card.dataset.name);
-    const text = `${emoji} ${card.dataset.name}\n\nLearn more: ${card.dataset.url}`;
-    navigator.clipboard.writeText(text).then(() => {
-      btn.classList.add('copied');
+  function copyCard(btn) {
+    const s = btn.closest('.stamp');
+    const emoji = getEmoji(s.dataset.name);
+    navigator.clipboard.writeText(`${emoji} ${s.dataset.name}\n${s.dataset.url}`).then(() => {
+      btn.classList.add('ok');
       btn.textContent = '✓';
       setTimeout(() => {
-        btn.classList.remove('copied');
-        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+        btn.classList.remove('ok');
+        btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
       }, 2000);
     });
   }
 
-  // ─── CONTROLS ─────────────────────────────────────────────────────────────
-  document.getElementById('prev-day').addEventListener('click', () => loadHolidays(shiftDate(currentDate, -1)));
-  document.getElementById('next-day').addEventListener('click', () => loadHolidays(shiftDate(currentDate, 1)));
-  document.getElementById('today-btn').addEventListener('click', () => loadHolidays(todayValue()));
-  dateInput.addEventListener('change', () => { if (dateInput.value) loadHolidays(dateInput.value); });
-  searchEl.addEventListener('input', () => renderFiltered(searchEl.value));
+  // ── Controls ──────────────────────────────────────────────────────────────
+  $('prev-day').onclick  = () => load(shift(cur, -1));
+  $('next-day').onclick  = () => load(shift(cur,  1));
+  $('today-btn').onclick = () => load(todayVal());
+  $('date-input').onchange = () => { if ($('date-input').value) load($('date-input').value); };
+  $('search-input').oninput = () => render($('search-input').value);
 
-  // ─── DARK MODE ────────────────────────────────────────────────────────────
-  const MOON = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
-  const SUN  = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+  // ── Dark mode ─────────────────────────────────────────────────────────────
+  const MOON = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  const SUN  = `<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
 
-  function updateDarkIcon() {
-    document.getElementById('dark-toggle').innerHTML =
-      document.body.classList.contains('dark') ? SUN : MOON;
-  }
+  const syncIcon = () => $('dark-btn').innerHTML = document.body.classList.contains('dark') ? SUN : MOON;
 
   function toggleDark() {
     document.body.classList.toggle('dark');
-    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
-    updateDarkIcon();
+    localStorage.setItem('dark', document.body.classList.contains('dark'));
+    syncIcon();
+    if (all.length) render($('search-input').value);
   }
 
-  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
-  updateDarkIcon();
+  if (localStorage.getItem('dark') === 'true') document.body.classList.add('dark');
+  syncIcon();
 
-  // ─── HELPERS ──────────────────────────────────────────────────────────────
-  function escHtml(s) {
+  // ── Helpers ───────────────────────────────────────────────────────────────
+  function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
   }
 
-  // ─── INIT ─────────────────────────────────────────────────────────────────
-  loadHolidays(todayValue());
+  load(todayVal());
 </script>
 </body>
 </html>
