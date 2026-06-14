@@ -1,0 +1,893 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Is Today a Holiday?</title>
+  <style>
+    :root {
+      --bg: #f5f3ff;
+      --surface: #ffffff;
+      --primary: #7c3aed;
+      --primary-hover: #6d28d9;
+      --primary-light: #ede9fe;
+      --primary-border: #c4b5fd;
+      --text-1: #1e293b;
+      --text-2: #475569;
+      --text-3: #94a3b8;
+      --border: #e2e8f0;
+      --shadow: 0 4px 20px rgba(0,0,0,0.08);
+      --radius: 16px;
+      --danger-bg: #fef2f2;
+      --danger-border: #fecaca;
+      --danger-text: #dc2626;
+    }
+
+    body.dark {
+      --bg: #0f0a1e;
+      --surface: #1a1030;
+      --primary: #a78bfa;
+      --primary-hover: #8b5cf6;
+      --primary-light: #2e1065;
+      --primary-border: #5b21b6;
+      --text-1: #f1f5f9;
+      --text-2: #94a3b8;
+      --text-3: #475569;
+      --border: #2d2542;
+      --shadow: 0 4px 20px rgba(0,0,0,0.4);
+      --danger-bg: #3b0f0f;
+      --danger-border: #7f1d1d;
+      --danger-text: #fca5a5;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-1);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    /* ── Header ── */
+    header {
+      width: 100%;
+      background: var(--surface);
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+      padding: 20px 24px;
+      position: relative;
+    }
+
+    .header-inner {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .header-text h1 {
+      font-size: 1.625rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .header-text p {
+      font-size: 0.875rem;
+      color: var(--text-2);
+      margin-top: 3px;
+    }
+
+    .dark-toggle {
+      position: absolute;
+      right: 24px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      width: 40px;
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .dark-toggle:hover {
+      background: var(--primary-light);
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+
+    /* ── Main ── */
+    main {
+      width: 100%;
+      max-width: 1000px;
+      padding: 32px 20px 60px;
+      flex: 1;
+    }
+
+    /* ── Date section ── */
+    .date-section { margin-bottom: 28px; }
+
+    .date-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn-day {
+      width: 40px;
+      height: 40px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--text-1);
+      font-size: 1.1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.15s;
+      flex-shrink: 0;
+    }
+
+    .btn-day:hover {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      color: var(--primary);
+    }
+
+    input[type="date"] {
+      padding: 9px 14px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      color: var(--text-1);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      outline: none;
+      cursor: pointer;
+      transition: border-color 0.15s;
+      color-scheme: light;
+    }
+
+    body.dark input[type="date"] { color-scheme: dark; }
+
+    input[type="date"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+    }
+
+    .btn-today {
+      padding: 9px 18px;
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--primary);
+      background: var(--primary-light);
+      border: 1.5px solid var(--primary-border);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: inherit;
+    }
+
+    .btn-today:hover { background: var(--primary); color: #fff; }
+
+    .date-display {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    #date-heading {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text-1);
+    }
+
+    .count-badge {
+      display: none;
+      padding: 4px 14px;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 700;
+      border: 1.5px solid var(--primary-border);
+    }
+
+    .search-wrapper { position: relative; }
+
+    .search-icon {
+      position: absolute;
+      left: 13px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-3);
+      pointer-events: none;
+    }
+
+    input[type="search"] {
+      width: 100%;
+      padding: 11px 14px 11px 40px;
+      font-size: 0.9375rem;
+      font-family: inherit;
+      color: var(--text-1);
+      background: var(--surface);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input[type="search"]:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.12);
+    }
+
+    /* ── Loading ── */
+    #loading-state {
+      text-align: center;
+      padding: 64px 0;
+      color: var(--text-2);
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner {
+      width: 36px;
+      height: 36px;
+      border: 3px solid var(--primary-light);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin: 0 auto 16px;
+    }
+
+    #loading-state p { font-size: 0.9375rem; font-weight: 500; }
+
+    /* ── Grid ── */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .holidays-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .holiday-card {
+      background: var(--surface);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 24px 16px 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      gap: 10px;
+      animation: fadeUp 0.3s ease both;
+      border: 1.5px solid transparent;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+    }
+
+    .holiday-card:hover {
+      border-color: var(--primary-border);
+      box-shadow: 0 6px 28px rgba(124,58,237,0.14);
+      transform: translateY(-2px);
+    }
+
+    .holiday-emoji {
+      font-size: 2.75rem;
+      line-height: 1;
+    }
+
+    .holiday-name {
+      font-size: 0.875rem;
+      font-weight: 700;
+      color: var(--text-1);
+      line-height: 1.35;
+      flex: 1;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 6px;
+      width: 100%;
+      margin-top: 4px;
+    }
+
+    .btn-learn {
+      flex: 1;
+      padding: 8px 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #fff;
+      background: var(--primary);
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      transition: background 0.15s;
+    }
+
+    .btn-learn:hover { background: var(--primary-hover); }
+
+    .btn-share {
+      width: 34px;
+      height: 34px;
+      flex-shrink: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      color: var(--text-2);
+      transition: all 0.15s;
+      font-family: inherit;
+      font-size: 0.875rem;
+    }
+
+    .btn-share:hover {
+      background: var(--primary-light);
+      border-color: var(--primary-border);
+      color: var(--primary);
+    }
+
+    .btn-share.copied {
+      background: #f0fdf4;
+      border-color: #bbf7d0;
+      color: #16a34a;
+    }
+
+    /* ── States ── */
+    #empty-state, #error-state {
+      text-align: center;
+      padding: 56px 20px;
+    }
+
+    .state-emoji { font-size: 3rem; display: block; margin-bottom: 14px; }
+    .state-title { font-size: 1.125rem; font-weight: 700; color: var(--text-1); margin-bottom: 8px; }
+    .state-body  { font-size: 0.9375rem; color: var(--text-2); }
+
+    .error-box {
+      background: var(--danger-bg);
+      border: 1.5px solid var(--danger-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      color: var(--danger-text);
+      font-size: 0.875rem;
+      max-width: 480px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      width: 100%;
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 28px 20px;
+      text-align: center;
+    }
+
+    .footer-brand {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    .footer-brand-name {
+      font-size: 1rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
+
+    .footer-copy {
+      font-size: 0.8125rem;
+      color: var(--text-3);
+      line-height: 1.7;
+    }
+
+    .footer-copy a { color: var(--primary); text-decoration: none; }
+    .footer-copy a:hover { text-decoration: underline; }
+
+    /* ── Responsive ── */
+    @media (max-width: 540px) {
+      .header-text h1 { font-size: 1.25rem; }
+      .holidays-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 320px) {
+      .holidays-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <svg width="44" height="44" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="flex-shrink:0">
+      <rect width="44" height="44" rx="11" fill="#7c3aed"/>
+      <rect x="8" y="13" width="28" height="22" rx="3" fill="none" stroke="white" stroke-width="2.5"/>
+      <line x1="8" y1="21" x2="36" y2="21" stroke="white" stroke-width="2"/>
+      <line x1="15" y1="9" x2="15" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="29" y1="9" x2="29" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M22 25l1.3 2.6 2.8.4-2 1.95.47 2.8L22 31.4l-2.57 1.35.47-2.8-2-1.95 2.8-.4z" fill="white"/>
+    </svg>
+    <div class="header-text">
+      <h1>Is Today a Holiday?</h1>
+      <p>Every day is a reason to celebrate</p>
+    </div>
+  </div>
+  <button class="dark-toggle" id="dark-toggle" onclick="toggleDark()" aria-label="Toggle dark mode"></button>
+</header>
+
+<main>
+  <div class="date-section">
+    <div class="date-nav">
+      <button class="btn-day" id="prev-day" aria-label="Previous day" title="Previous day">&#8592;</button>
+      <input type="date" id="date-input" />
+      <button class="btn-day" id="next-day" aria-label="Next day" title="Next day">&#8594;</button>
+      <button class="btn-today" id="today-btn">Today</button>
+    </div>
+
+    <div class="date-display">
+      <h2 id="date-heading"></h2>
+      <span class="count-badge" id="holiday-count"></span>
+    </div>
+
+    <div class="search-wrapper">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <input type="search" id="search-input" placeholder="Search today's holidays…" aria-label="Search holidays" />
+    </div>
+  </div>
+
+  <div id="loading-state">
+    <div class="spinner"></div>
+    <p>Loading holidays…</p>
+  </div>
+
+  <div id="holidays-grid" class="holidays-grid" style="display:none"></div>
+
+  <div id="empty-state" style="display:none">
+    <span class="state-emoji">🔍</span>
+    <p class="state-title">No matches</p>
+    <p class="state-body" id="empty-msg"></p>
+  </div>
+
+  <div id="error-state" style="display:none">
+    <div class="error-box" id="error-box"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="footer-brand">
+    <svg width="28" height="28" viewBox="0 0 44 44" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect width="44" height="44" rx="11" fill="#7c3aed"/>
+      <rect x="8" y="13" width="28" height="22" rx="3" fill="none" stroke="white" stroke-width="2.5"/>
+      <line x1="8" y1="21" x2="36" y2="21" stroke="white" stroke-width="2"/>
+      <line x1="15" y1="9" x2="15" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <line x1="29" y1="9" x2="29" y2="17" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M22 25l1.3 2.6 2.8.4-2 1.95.47 2.8L22 31.4l-2.57 1.35.47-2.8-2-1.95 2.8-.4z" fill="white"/>
+    </svg>
+    <span class="footer-brand-name">Is Today a Holiday?</span>
+  </div>
+  <p class="footer-copy">Holiday data powered by <a href="https://www.checkiday.com" target="_blank" rel="noopener">Checkiday</a></p>
+  <p class="footer-copy">&copy; 2026 Is Today a Holiday?</p>
+</footer>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────────────────────
+  const CHECKIDAY_API_KEY = 'EHwfsylcF5kVVWe79uxXZ1B68XwOfXpY';
+
+  // ─── EMOJI DETECTION ──────────────────────────────────────────────────────
+  const EMOJI_RULES = [
+    [['donut','doughnut'], '🍩'],
+    [['pizza'], '🍕'],
+    [['chocolate','cocoa'], '🍫'],
+    [['coffee','espresso','cappuccino','latte','mocha'], '☕'],
+    [['beer','brew','ale','lager','stout','ipa'], '🍺'],
+    [['wine','champagne'], '🥂'],
+    [['tea','chai'], '🍵'],
+    [['ice cream','gelato','frozen yogurt','soft serve'], '🍦'],
+    [['cake','cupcake'], '🎂'],
+    [['cookie','biscuit'], '🍪'],
+    [['pie'], '🥧'],
+    [['candy','caramel','gummy','lollipop','licorice'], '🍬'],
+    [['waffle'], '🧇'],
+    [['pancake','crepe'], '🥞'],
+    [['egg','omelet','omelette'], '🥚'],
+    [['taco'], '🌮'],
+    [['burger','hamburger'], '🍔'],
+    [['hot dog','hotdog'], '🌭'],
+    [['sandwich','sub','hoagie'], '🥪'],
+    [['soup','stew','chowder','chili'], '🍲'],
+    [['salad'], '🥗'],
+    [['ramen','noodle','noodles','sushi','sashimi'], '🍜'],
+    [['pasta','spaghetti','lasagna'], '🍝'],
+    [['bread','toast','bagel','muffin'], '🍞'],
+    [['pretzel'], '🥨'],
+    [['popcorn'], '🍿'],
+    [['cheese'], '🧀'],
+    [['nacho','chip','salsa'], '🌽'],
+    [['avocado'], '🥑'],
+    [['banana'], '🍌'],
+    [['apple'], '🍎'],
+    [['lemon','lime','citrus'], '🍋'],
+    [['strawberry','berry','blueberry','raspberry'], '🍓'],
+    [['grape'], '🍇'],
+    [['watermelon','melon'], '🍉'],
+    [['pineapple'], '🍍'],
+    [['coconut'], '🥥'],
+    [['mushroom'], '🍄'],
+    [['carrot','vegetable'], '🥕'],
+    [['milk','dairy'], '🥛'],
+    [['honey'], '🍯'],
+    [['peanut','almond','walnut','cashew','nut'], '🥜'],
+    [['margarita','cocktail','mojito','mimosa'], '🍹'],
+    [['bourbon','whiskey','whisky','scotch'], '🥃'],
+    [['vodka','gin','rum','tequila'], '🍸'],
+    [['lemonade','juice','smoothie'], '🥤'],
+    [['cat','kitten','feline','kitty'], '🐱'],
+    [['dog','puppy','canine','hound'], '🐶'],
+    [['owl'], '🦉'],
+    [['bird','eagle','hawk','sparrow','robin','parrot'], '🐦'],
+    [['fish','salmon','tuna','trout'], '🐟'],
+    [['dolphin','whale'], '🐬'],
+    [['butterfly'], '🦋'],
+    [['bee','honeybee'], '🐝'],
+    [['turtle','tortoise'], '🐢'],
+    [['elephant'], '🐘'],
+    [['lion','tiger','leopard','cheetah'], '🦁'],
+    [['bear','panda','grizzly'], '🐻'],
+    [['monkey','gorilla','chimp'], '🐒'],
+    [['horse','pony','equine','donkey'], '🐴'],
+    [['cow','bull','cattle'], '🐄'],
+    [['pig','pork','swine'], '🐷'],
+    [['chicken','hen','rooster'], '🐔'],
+    [['turkey'], '🦃'],
+    [['frog','toad'], '🐸'],
+    [['snake','reptile','python'], '🐍'],
+    [['bat'], '🦇'],
+    [['spider','tarantula'], '🕷️'],
+    [['ant','insect','bug'], '🐜'],
+    [['wolf'], '🐺'],
+    [['fox'], '🦊'],
+    [['deer','reindeer'], '🦌'],
+    [['rabbit','bunny','hare'], '🐰'],
+    [['duck'], '🦆'],
+    [['penguin'], '🐧'],
+    [['flamingo'], '🦩'],
+    [['octopus','squid'], '🐙'],
+    [['crab','lobster'], '🦀'],
+    [['shark'], '🦈'],
+    [['sloth'], '🦥'],
+    [['otter'], '🦦'],
+    [['hedgehog'], '🦔'],
+    [['carnivorous plant','venus fly','pitcher plant'], '🪴'],
+    [['flower','rose','tulip','daisy','lily','orchid','sunflower'], '🌸'],
+    [['tree','forest','woodland'], '🌲'],
+    [['plant','herb','fern','succulent'], '🌿'],
+    [['cactus'], '🌵'],
+    [['earth day','environment','ecosystem','planet'], '🌍'],
+    [['ocean','sea','marine','coast','coral'], '🌊'],
+    [['mountain','hiking','hill'], '⛰️'],
+    [['rain','storm','thunder','umbrella'], '🌧️'],
+    [['snow','winter','ice','frost','blizzard'], '❄️'],
+    [['fire','flame','campfire'], '🔥'],
+    [['lightning','electric'], '⚡'],
+    [['rainbow'], '🌈'],
+    [['sun','solar','sunshine'], '☀️'],
+    [['moon','lunar'], '🌙'],
+    [['star','stargazing'], '⭐'],
+    [['recycle','green day','eco','sustain'], '♻️'],
+    [['football','soccer'], '⚽'],
+    [['basketball'], '🏀'],
+    [['baseball','softball'], '⚾'],
+    [['golf'], '⛳'],
+    [['tennis'], '🎾'],
+    [['swim','swimming'], '🏊'],
+    [['marathon','5k','10k'], '🏃'],
+    [['bike','cycling','bicycle'], '🚴'],
+    [['hike','trek','trail'], '🥾'],
+    [['yoga','meditation'], '🧘'],
+    [['dance','ballet'], '💃'],
+    [['music','song','jazz','blues','rock','gospel','folk','sing'], '🎵'],
+    [['guitar','piano','violin','drum','trumpet'], '🎸'],
+    [['art','paint','draw','watercolor','sculpture'], '🎨'],
+    [['photography','camera'], '📷'],
+    [['cinema','movie','film'], '🎬'],
+    [['theater','theatre','drama'], '🎭'],
+    [['book','read','library','literature','novel','author','poetry','poet'], '📚'],
+    [['science','laboratory','chemistry','biology','physics'], '🔬'],
+    [['technology','computer','internet','coding','programming'], '💻'],
+    [['robot','artificial intelligence'], '🤖'],
+    [['video game','arcade','gaming'], '🎮'],
+    [['chess'], '♟️'],
+    [['bowling'], '🎳'],
+    [['ski','skiing','snowboard'], '⛷️'],
+    [['surf','surfing'], '🏄'],
+    [['mother','mom','mum','maternal'], '👩'],
+    [['father','dad','paternal'], '👨'],
+    [['child','kid','youth','children'], '🧒'],
+    [['baby','infant','newborn'], '👶'],
+    [['veteran','military','armed force'], '🎖️'],
+    [['nurse','doctor','medical','physician'], '👨‍⚕️'],
+    [['teacher','education','school'], '👨‍🏫'],
+    [['farmer','agriculture'], '👨‍🌾'],
+    [['volunteer','charity','donate'], '🤝'],
+    [['friendship','best friend'], '🤝'],
+    [['love','romance','valentine'], '❤️'],
+    [['peace','harmony'], '🕊️'],
+    [['pride','lgbtq'], '🏳️‍🌈'],
+    [['worker','labor','work'], '👷'],
+    [['christmas','xmas'], '🎄'],
+    [['halloween'], '🎃'],
+    [['thanksgiving'], '🦃'],
+    [['easter'], '🐣'],
+    [['hanukkah','chanukah'], '🕎'],
+    [['diwali','deepavali'], '🪔'],
+    [['new year'], '🎆'],
+    [['birthday'], '🎂'],
+    [['anniversary'], '💍'],
+    [['wedding','marriage','bride'], '💒'],
+    [['graduation','graduate'], '🎓'],
+    [['independence','freedom','liberty'], '🗽'],
+    [['america','usa','united states'], '🇺🇸'],
+    [['prayer','spiritual','faith','religion','holy','sacred'], '🙏'],
+    [['world','global','international'], '🌍'],
+    [['laugh','humor','comedy','joke','silly'], '😄'],
+    [['clean','tidy','organize'], '🧹'],
+    [['garden','gardening'], '🌻'],
+    [['space','cosmos','galaxy','universe','nasa','rocket','astronaut'], '🚀'],
+    [['money','wealth','financial','economy'], '💰'],
+    [['shopping','shop'], '🛍️'],
+    [['travel','vacation','tourist'], '✈️'],
+    [['puzzle','brain','mind'], '🧩'],
+    [['sleep','nap','rest'], '😴'],
+    [['happiness','joy','happy'], '😊'],
+    [['hug','cuddle'], '🤗'],
+    [['award','prize','trophy','champion'], '🏆'],
+    [['carnival','fair','circus'], '🎡'],
+    [['firework','fireworks'], '🎆'],
+    [['balloon'], '🎈'],
+    [['gift','present'], '🎁'],
+    [['hat'], '🎩'],
+    [['superhero','comic'], '🦸'],
+    [['pirate'], '🏴‍☠️'],
+    [['alien','ufo'], '👽'],
+    [['dragon'], '🐉'],
+    [['unicorn'], '🦄'],
+    [['magic','sorcery','wizard','witch'], '🧙'],
+    [['fairy'], '🧚'],
+    [['ghost'], '👻'],
+    [['vampire'], '🧛'],
+    [['mermaid'], '🧜'],
+    [['run','running'], '🏃'],
+    [['walk','walking','pedestrian'], '🚶'],
+    [['tattoo'], '💉'],
+    [['selfie','social media'], '🤳'],
+    [['candle'], '🕯️'],
+    [['confetti','celebrate','festiv','party'], '🎉'],
+  ];
+
+  function getEmoji(name) {
+    const n = name.toLowerCase();
+    for (const [keywords, emoji] of EMOJI_RULES) {
+      if (keywords.some(k => n.includes(k))) return emoji;
+    }
+    return '🎉';
+  }
+
+  // ─── DATE UTILITIES ───────────────────────────────────────────────────────
+  function todayValue() {
+    const d = new Date();
+    return [
+      d.getFullYear(),
+      String(d.getMonth() + 1).padStart(2, '0'),
+      String(d.getDate()).padStart(2, '0'),
+    ].join('-');
+  }
+
+  function toApiDate(v) {
+    const [y, m, d] = v.split('-');
+    return `${m}/${d}/${y}`;
+  }
+
+  function formatHeading(v) {
+    const [y, m, d] = v.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('en-US', {
+      weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    });
+  }
+
+  function shiftDate(v, days) {
+    const [y, m, d] = v.split('-').map(Number);
+    const dt = new Date(y, m - 1, d + days);
+    return [
+      dt.getFullYear(),
+      String(dt.getMonth() + 1).padStart(2, '0'),
+      String(dt.getDate()).padStart(2, '0'),
+    ].join('-');
+  }
+
+  // ─── STATE ────────────────────────────────────────────────────────────────
+  let allHolidays = [];
+  let currentDate = todayValue();
+
+  const loadingEl  = document.getElementById('loading-state');
+  const gridEl     = document.getElementById('holidays-grid');
+  const emptyEl    = document.getElementById('empty-state');
+  const errorEl    = document.getElementById('error-state');
+  const headingEl  = document.getElementById('date-heading');
+  const countEl    = document.getElementById('holiday-count');
+  const searchEl   = document.getElementById('search-input');
+  const dateInput  = document.getElementById('date-input');
+
+  function showState(s) {
+    loadingEl.style.display = s === 'loading' ? '' : 'none';
+    gridEl.style.display    = s === 'grid'    ? '' : 'none';
+    emptyEl.style.display   = s === 'empty'   ? '' : 'none';
+    errorEl.style.display   = s === 'error'   ? '' : 'none';
+  }
+
+  // ─── FETCH ────────────────────────────────────────────────────────────────
+  async function loadHolidays(date) {
+    currentDate = date;
+    dateInput.value = date;
+    headingEl.textContent = formatHeading(date);
+    countEl.style.display = 'none';
+    searchEl.value = '';
+    showState('loading');
+
+    try {
+      const res = await fetch(
+        `https://api.checkiday.com/3/events?date=${encodeURIComponent(toApiDate(date))}`,
+        { headers: { 'x-api-key': CHECKIDAY_API_KEY } }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+      allHolidays = data.events || [];
+
+      countEl.textContent = `${allHolidays.length} holiday${allHolidays.length !== 1 ? 's' : ''}`;
+      countEl.style.display = 'inline-block';
+      renderFiltered('');
+    } catch (err) {
+      showState('error');
+      document.getElementById('error-box').innerHTML =
+        `<strong>Could not load holidays.</strong><br>${escHtml(err.message)}<br><br>Check that your API key is set in the script and that you have an active Checkiday subscription.`;
+    }
+  }
+
+  // ─── RENDER ───────────────────────────────────────────────────────────────
+  function renderFiltered(query) {
+    const q = query.toLowerCase().trim();
+    const list = q ? allHolidays.filter(h => h.name.toLowerCase().includes(q)) : allHolidays;
+
+    if (allHolidays.length === 0) {
+      showState('empty');
+      document.getElementById('empty-msg').textContent = 'No holidays found for this date.';
+      return;
+    }
+
+    if (list.length === 0) {
+      showState('empty');
+      document.getElementById('empty-msg').textContent =
+        `No holidays match "${query}". Try a different search.`;
+      return;
+    }
+
+    gridEl.innerHTML = '';
+    list.forEach((h, i) => {
+      const card = document.createElement('div');
+      card.className = 'holiday-card';
+      card.style.animationDelay = `${Math.min(i * 25, 400)}ms`;
+      card.dataset.name = h.name;
+      card.dataset.url  = h.url;
+
+      card.innerHTML = `
+        <div class="holiday-emoji" aria-hidden="true">${getEmoji(h.name)}</div>
+        <div class="holiday-name">${escHtml(h.name)}</div>
+        <div class="card-actions">
+          <a class="btn-learn" href="${escHtml(h.url)}" target="_blank" rel="noopener">
+            Learn more
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/>
+            </svg>
+          </a>
+          <button class="btn-share" onclick="shareHoliday(this)" title="Copy to clipboard" aria-label="Share ${escHtml(h.name)}">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+            </svg>
+          </button>
+        </div>`;
+
+      gridEl.appendChild(card);
+    });
+
+    showState('grid');
+  }
+
+  function shareHoliday(btn) {
+    const card = btn.closest('.holiday-card');
+    const emoji = getEmoji(card.dataset.name);
+    const text = `${emoji} ${card.dataset.name}\n\nLearn more: ${card.dataset.url}`;
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      btn.textContent = '✓';
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>`;
+      }, 2000);
+    });
+  }
+
+  // ─── CONTROLS ─────────────────────────────────────────────────────────────
+  document.getElementById('prev-day').addEventListener('click', () => loadHolidays(shiftDate(currentDate, -1)));
+  document.getElementById('next-day').addEventListener('click', () => loadHolidays(shiftDate(currentDate, 1)));
+  document.getElementById('today-btn').addEventListener('click', () => loadHolidays(todayValue()));
+  dateInput.addEventListener('change', () => { if (dateInput.value) loadHolidays(dateInput.value); });
+  searchEl.addEventListener('input', () => renderFiltered(searchEl.value));
+
+  // ─── DARK MODE ────────────────────────────────────────────────────────────
+  const MOON = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  const SUN  = `<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`;
+
+  function updateDarkIcon() {
+    document.getElementById('dark-toggle').innerHTML =
+      document.body.classList.contains('dark') ? SUN : MOON;
+  }
+
+  function toggleDark() {
+    document.body.classList.toggle('dark');
+    localStorage.setItem('darkMode', document.body.classList.contains('dark'));
+    updateDarkIcon();
+  }
+
+  if (localStorage.getItem('darkMode') === 'true') document.body.classList.add('dark');
+  updateDarkIcon();
+
+  // ─── HELPERS ──────────────────────────────────────────────────────────────
+  function escHtml(s) {
+    return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // ─── INIT ─────────────────────────────────────────────────────────────────
+  loadHolidays(todayValue());
+</script>
+</body>
+</html>
