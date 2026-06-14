@@ -663,11 +663,18 @@
   async function fetchMeal() {
     const { diet, cuisine } = prefs;
 
-    // Build the candidate list. For diet+cuisine, intersect both filter lists so
-    // we never return a meal that fails either constraint.
+    // TheMealDB's Vegetarian/Vegan *categories* are small curated lists that miss
+    // many genuinely plant-based dishes (e.g. Dal Fry sits under Miscellaneous).
+    // When a cuisine is also set, skip the category intersection and instead fetch
+    // the cuisine list then check each meal's ingredient list directly.
+    if ((diet === 'Vegetarian' || diet === 'Vegan') && cuisine) {
+      return fetchWithIngredientCheck(diet, cuisine);
+    }
+
     let mealList = null;
 
     if (diet && cuisine) {
+      // For category-backed diets (Chicken, Beef, Seafood) + cuisine, intersect both lists.
       const [dietList, cuisineList] = await Promise.all([
         fetchList('c', diet),
         fetchList('a', cuisine),
@@ -675,7 +682,7 @@
       const dietIds = new Set(dietList.map(m => m.idMeal));
       mealList = cuisineList.filter(m => dietIds.has(m.idMeal));
       if (mealList.length === 0) {
-        throw new Error(`No ${diet} recipes exist for ${cuisine} cuisine — try a different combination`);
+        throw new Error(`No ${diet} recipes found for ${cuisine} cuisine — try a different combination`);
       }
     } else if (diet) {
       mealList = await fetchList('c', diet);
@@ -699,6 +706,53 @@
     const meal = data.meals?.[0];
     if (!meal) throw new Error('API returned no meal data');
     return meal;
+  }
+
+  // Fetch cuisine list then scan ingredients to find a meal that meets the diet.
+  async function fetchWithIngredientCheck(diet, cuisine) {
+    const list    = await fetchList('a', cuisine);
+    const dietFn  = diet === 'Vegan' ? meetsVegan : meetsVegetarian;
+    // Shuffle so every call gives a different random result
+    const shuffled = [...list].sort(() => Math.random() - 0.5);
+    const tries    = shuffled.slice(0, Math.min(shuffled.length, 12));
+
+    for (const pick of tries) {
+      const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
+      if (!res.ok) continue;
+      const data = await res.json();
+      const meal = data.meals?.[0];
+      if (meal && dietFn(meal)) return meal;
+    }
+
+    throw new Error(`No ${diet} meals found for ${cuisine} cuisine — try a different combination`);
+  }
+
+  // ── Ingredient-based diet checks ──────────────────────────────────────────
+  const NON_VEGETARIAN = [
+    'chicken', 'beef', 'lamb', 'pork', 'ham', 'bacon', 'turkey', 'duck', 'veal',
+    'venison', 'steak', 'mince', 'sausage', 'salami', 'prosciutto', 'chorizo',
+    'pepperoni', 'anchovy', 'anchovies', 'salmon', 'tuna', 'cod', 'haddock',
+    'trout', 'mackerel', 'sardine', 'prawn', 'shrimp', 'lobster', 'crab',
+    'squid', 'scallop', 'mussel', 'clam', 'oyster', 'gelatin', 'lard', 'suet',
+    'fish', 'meat', 'liver', 'kidney', 'worcestershire',
+  ];
+
+  const NON_VEGAN = [
+    ...NON_VEGETARIAN,
+    'milk', 'cream', 'butter', 'cheese', 'yogurt', 'yoghurt', 'ghee', 'paneer',
+    'egg', 'eggs', 'honey', 'whey',
+  ];
+
+  function meetsVegetarian(meal) { return !ingredientsContain(meal, NON_VEGETARIAN); }
+  function meetsVegan(meal)      { return !ingredientsContain(meal, NON_VEGAN); }
+
+  function ingredientsContain(meal, terms) {
+    for (let i = 1; i <= 20; i++) {
+      const ing = (meal[`strIngredient${i}`] || '').toLowerCase().trim();
+      if (!ing) continue;
+      if (terms.some(t => ing === t || ing.startsWith(t + ' ') || ing.endsWith(' ' + t))) return true;
+    }
+    return false;
   }
 
   async function fetchList(param, value) {
