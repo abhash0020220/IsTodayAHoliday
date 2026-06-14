@@ -668,60 +668,75 @@
     if (!diet && !cuisine) return fetchRandom();
     if (diet && !cuisine)  return lookupRandom(await fetchList('c', diet));
 
-    // Try the area filter for cuisine. On TheMealDB's free tier this sometimes
-    // returns {meals:null} — catch silently and fall back rather than throwing.
+    // Try area filter — may return null on free tier, caught silently
     let cuisinePool = null;
     try { cuisinePool = await fetchList('a', cuisine); } catch (_) {}
 
     if (!diet) {
+      // Cuisine-only: area filter gives us a list to pick from
       if (cuisinePool) return lookupRandom(cuisinePool);
-      // Area filter unavailable: spin random meals until one matches the cuisine
-      return findCuisineViaRandom(cuisine);
+      // Fallback: exhaustive search across all categories filtered by strArea
+      const meal = await comprehensiveSearch(cuisine, '');
+      if (meal) return meal;
+      throw new Error('Couldn\'t find a ' + cuisine + ' meal — try again');
     }
 
-    // Diet + cuisine: scan whichever pool we have for a meal passing the diet check
-    if (cuisinePool) return findDietInPool(cuisinePool, diet, cuisine);
-
-    // Area filter unavailable fallback: use diet category pool, check strArea
-    const dietPool = await fetchList('c', diet);
-    return findCuisineInDietPool(dietPool, cuisine, diet);
-  }
-
-  // Try random meals until one is from the right cuisine
-  async function findCuisineViaRandom(cuisine) {
-    for (let i = 0; i < 20; i++) {
-      const meal = await fetchRandom();
-      if (meal.strArea === cuisine) return meal;
+    // Diet + cuisine: scan the area pool first (covers ALL meals in that cuisine)
+    if (cuisinePool) {
+      const meal = await scanPool(cuisinePool, diet, null);
+      if (meal) return meal;
+      // Pool exhausted — no match despite scanning every meal in that cuisine
     }
-    throw new Error('Couldn\'t find a ' + cuisine + ' meal — try again');
-  }
 
-  // Scan a cuisine-filtered pool and return the first meal that passes the diet check
-  async function findDietInPool(pool, diet, cuisine) {
-    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-    for (let i = 0; i < Math.min(shuffled.length, 15); i++) {
-      try {
-        const res  = await fetch(BASE + '/lookup.php?i=' + shuffled[i].idMeal);
-        if (!res.ok) continue;
-        const meal = (await res.json()).meals?.[0];
-        if (meal && meetsDiet(meal, diet)) return meal;
-      } catch (_) { continue; }
-    }
-    throw new Error('No ' + diet + ' meals found in ' + cuisine + ' cuisine — try a different combination');
-  }
+    // Comprehensive fallback: fetch every TheMealDB category in parallel,
+    // combine into one big pool, scan for strArea + diet match
+    const meal = await comprehensiveSearch(cuisine, diet);
+    if (meal) return meal;
 
-  // Scan a diet-category pool and return the first meal from the right cuisine
-  async function findCuisineInDietPool(pool, cuisine, diet) {
-    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-    for (let i = 0; i < Math.min(shuffled.length, 20); i++) {
-      try {
-        const res  = await fetch(BASE + '/lookup.php?i=' + shuffled[i].idMeal);
-        if (!res.ok) continue;
-        const meal = (await res.json()).meals?.[0];
-        if (meal && meal.strArea === cuisine && meetsDiet(meal, diet)) return meal;
-      } catch (_) { continue; }
-    }
     throw new Error('No ' + diet + ' ' + cuisine + ' meals found — try a different combination');
+  }
+
+  // Scan pool in parallel batches of 8 (speeds up sequential lookup bottleneck).
+  // cuisine=null skips the strArea check (pool is already cuisine-filtered).
+  async function scanPool(pool, diet, cuisine) {
+    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
+    const BATCH = 8;
+    for (let i = 0; i < shuffled.length; i += BATCH) {
+      const batch = shuffled.slice(i, i + BATCH);
+      const settled = await Promise.allSettled(
+        batch.map(s =>
+          fetch(BASE + '/lookup.php?i=' + s.idMeal)
+            .then(r => r.json())
+            .then(d => d.meals && d.meals[0])
+        )
+      );
+      for (const r of settled) {
+        if (r.status !== 'fulfilled' || !r.value) continue;
+        const meal = r.value;
+        if (cuisine && meal.strArea !== cuisine) continue;
+        if (!meetsDiet(meal, diet)) continue;
+        return meal;
+      }
+    }
+    return null;
+  }
+
+  // Fetch all 14 TheMealDB categories in parallel, deduplicate, then scanPool.
+  // This covers every meal in the database regardless of TheMealDB's category tags.
+  async function comprehensiveSearch(cuisine, diet) {
+    const CATS = ['Beef','Chicken','Lamb','Pork','Seafood','Vegetarian','Vegan',
+                  'Miscellaneous','Pasta','Starter','Side','Breakfast','Dessert','Goat'];
+    const pools = await Promise.allSettled(CATS.map(c => fetchList('c', c)));
+
+    const seen = Object.create(null);
+    const combined = [];
+    for (const p of pools) {
+      if (p.status !== 'fulfilled') continue;
+      for (const m of p.value) {
+        if (!seen[m.idMeal]) { seen[m.idMeal] = true; combined.push(m); }
+      }
+    }
+    return scanPool(combined, diet, cuisine);
   }
 
   async function fetchRandom() {
@@ -750,10 +765,6 @@
   }
 
   // ── Diet checks via ingredient scanning ───────────────────────────────────
-  // All diet preferences are checked by inspecting the ingredient list, not
-  // TheMealDB's category tag. This catches meals like Grilled Cheese (tagged
-  // "Miscellaneous" but correctly vegetarian by ingredients).
-
   const NON_VEGETARIAN = [
     'chicken', 'beef', 'lamb', 'pork', 'ham', 'bacon', 'turkey', 'duck', 'veal',
     'venison', 'steak', 'mince', 'sausage', 'salami', 'prosciutto', 'chorizo',
@@ -791,7 +802,7 @@
       if (!ing) continue;
       for (let j = 0; j < terms.length; j++) {
         const t = terms[j];
-        if (ing === t || ing.startsWith(t + ' ') || ing.endsWith(' ' + t)) return true;
+        if (ing === t || ing.startsWith(t + ' ') || ing.endsWith(' ' + t) || ing.includes(' ' + t + ' ')) return true;
       }
     }
     return false;
