@@ -515,11 +515,6 @@
     { label: '🥩 Beef',       value: 'Beef'       },
   ];
 
-  const TIME_OPTIONS = [
-    { label: '⏰ Any time',        value: ''      },
-    { label: '⚡ Quick (~30 min)', value: 'quick' },
-  ];
-
   const CUISINE_OPTIONS = [
     { flag: '🇺🇸', name: 'American',   area: 'American'   },
     { flag: '🇬🇧', name: 'British',    area: 'British'    },
@@ -551,7 +546,7 @@
   let msgTimer = null;
   let msgIdx   = 0;
   // '' = no restriction (not null, avoids JSON.stringify double-quote issue)
-  let prefs = { diet: '', time: '', cuisine: '' };
+  let prefs = { diet: '', cuisine: '' };
 
   // ── Landing ───────────────────────────────────────────────────────────────
   function showLanding() {
@@ -560,11 +555,6 @@
     const dietHtml = DIET_OPTIONS.map((o, i) =>
       `<button class="pill${i === 0 && prefs.diet === '' ? ' active' : prefs.diet === o.value && prefs.diet !== '' ? ' active' : ''}"
         data-group="diet" data-value="${o.value}" onclick="selectPill(this)">${o.label}</button>`
-    ).join('');
-
-    const timeHtml = TIME_OPTIONS.map(o =>
-      `<button class="pill${prefs.time === o.value ? ' active' : ''}"
-        data-group="time" data-value="${o.value}" onclick="selectPill(this)">${o.label}</button>`
     ).join('');
 
     const cuisineHtml = CUISINE_OPTIONS.map(c =>
@@ -595,14 +585,6 @@
             <span class="tag tag-opt">Optional — click a flag to pick, click again to clear</span>
           </div>
           <div class="cuisine-grid">${cuisineHtml}</div>
-        </div>
-
-        <div class="pref-section">
-          <div class="pref-header">
-            <p class="pref-label">How much time do you have?</p>
-            <span class="tag tag-opt">Optional</span>
-          </div>
-          <div class="pills">${timeHtml}</div>
         </div>
 
         <button class="btn-feed" onclick="loadMeal()">Feed Me! →</button>
@@ -679,8 +661,7 @@
   }
 
   async function fetchMeal() {
-    const { diet, time, cuisine } = prefs;
-    const wantQuick = time === 'quick';
+    const { diet, cuisine } = prefs;
 
     // Build the candidate list. For diet+cuisine, intersect both filter lists so
     // we never return a meal that fails either constraint.
@@ -702,32 +683,22 @@
       mealList = await fetchList('a', cuisine);
     }
 
-    // Try a few times only when filtering by quick time (need full details to check)
-    const MAX_TRIES = wantQuick ? 4 : 1;
-
-    for (let attempt = 0; attempt < MAX_TRIES; attempt++) {
-      let meal;
-
-      if (mealList) {
-        const pick = mealList[Math.floor(Math.random() * mealList.length)];
-        const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
-        if (!res.ok) continue;
-        const data = await res.json();
-        meal = data.meals?.[0];
-        if (!meal) continue;
-      } else {
-        const res  = await fetch(`${BASE}/random.php`);
-        if (!res.ok) throw new Error(`API returned HTTP ${res.status}`);
-        const data = await res.json();
-        meal = data.meals?.[0];
-        if (!meal) continue;
-      }
-
-      // Accept on last attempt regardless of time (don't fail just because of word count)
-      if (!wantQuick || isQuick(meal) || attempt === MAX_TRIES - 1) return meal;
+    if (mealList) {
+      const pick = mealList[Math.floor(Math.random() * mealList.length)];
+      const res  = await fetch(`${BASE}/lookup.php?i=${pick.idMeal}`);
+      if (!res.ok) throw new Error(`Lookup returned HTTP ${res.status}`);
+      const data = await res.json();
+      const meal = data.meals?.[0];
+      if (!meal) throw new Error('No meal data returned');
+      return meal;
     }
 
-    throw new Error('Could not find a matching recipe — try again');
+    const res  = await fetch(`${BASE}/random.php`);
+    if (!res.ok) throw new Error(`API returned HTTP ${res.status}`);
+    const data = await res.json();
+    const meal = data.meals?.[0];
+    if (!meal) throw new Error('API returned no meal data');
+    return meal;
   }
 
   async function fetchList(param, value) {
@@ -736,10 +707,6 @@
     const data = await res.json();
     if (!data.meals?.length) throw new Error('No recipes found for these filters');
     return data.meals;
-  }
-
-  function isQuick(meal) {
-    return (meal.strInstructions || '').split(/\s+/).filter(Boolean).length <= 300;
   }
 
   function estimateTime(instructions) {
