@@ -552,7 +552,9 @@
   let msgTimer = null;
   let msgIdx   = 0;
   // '' = no restriction (not null, avoids JSON.stringify double-quote issue)
-  let prefs = { diet: '', cuisine: '', mealType: '' };
+  let prefs        = { diet: '', cuisine: '', mealType: '' };
+  let seenMealIds  = new Set(); // tracks shown meals to avoid repeats
+  let lastPrefsKey = '';        // resets seenMealIds when prefs change
 
   // ── Landing ───────────────────────────────────────────────────────────────
   function showLanding() {
@@ -726,10 +728,20 @@
     return fetchList('c', 'Miscellaneous');
   }
 
-  // Scan pool in parallel batches of 6, returning first meal that satisfies diet + mealType
+  // Scan pool in parallel batches of 6, avoiding meals already shown this session.
+  // Scans the full pool so it can fall back to a seen meal if all options are exhausted.
   async function scanForPrefs(pool, diet, mealType) {
+    // Reset history when the user changes their preferences
+    const prefsKey = prefs.diet + '|' + prefs.cuisine + '|' + prefs.mealType;
+    if (prefsKey !== lastPrefsKey) {
+      seenMealIds.clear();
+      lastPrefsKey = prefsKey;
+    }
+
     const shuffled = pool.slice().sort(() => Math.random() - 0.5);
     const BATCH = 6;
+    let anyMatch = null; // first qualifying meal (seen or not) as a last-resort fallback
+
     for (let i = 0; i < shuffled.length; i += BATCH) {
       const batch   = shuffled.slice(i, i + BATCH);
       const settled = await Promise.allSettled(
@@ -741,10 +753,22 @@
       );
       for (const r of settled) {
         if (r.status !== 'fulfilled' || !r.value) continue;
-        if (!meetsDiet(r.value, diet)) continue;
-        if (!meetsMealType(r.value, mealType)) continue;
-        return r.value;
+        const meal = r.value;
+        if (!meetsDiet(meal, diet)) continue;
+        if (!meetsMealType(meal, mealType)) continue;
+        if (!anyMatch) anyMatch = meal;
+        if (!seenMealIds.has(meal.idMeal)) {
+          seenMealIds.add(meal.idMeal);
+          return meal;
+        }
       }
+    }
+
+    // Every matching meal has been shown — reset and return any qualifying meal
+    if (anyMatch) {
+      seenMealIds.clear();
+      seenMealIds.add(anyMatch.idMeal);
+      return anyMatch;
     }
     return null;
   }
