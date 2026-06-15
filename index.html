@@ -708,9 +708,10 @@
     const meal = await scanForPrefs(pool, diet, mealType);
     if (meal) return meal;
 
-    // Nothing matched all constraints — retry without mealType before giving up
-    if (mealType) {
-      const fallback = await scanForPrefs(pool, diet, '');
+    // Nothing matched all constraints — retry with relaxed mealType before giving up
+    if (mealType === 'Dinner') {
+      // Still exclude Dessert — user wanted a meal, not a cake
+      const fallback = await scanForPrefs(pool, diet, 'NoDessert');
       if (fallback) return fallback;
     }
 
@@ -808,9 +809,9 @@
   function meetsMealType(meal, mealType) {
     if (!mealType) return true;
     const cat = meal.strCategory || '';
-    if (mealType === 'Dessert') return cat === 'Dessert';
-    if (mealType === 'Snack')   return cat === 'Starter' || cat === 'Side';
-    if (mealType === 'Dinner')  return cat !== 'Dessert' && cat !== 'Starter' && cat !== 'Side' && cat !== 'Breakfast';
+    if (mealType === 'Dessert')   return cat === 'Dessert';
+    if (mealType === 'Dinner')    return cat !== 'Dessert' && cat !== 'Starter' && cat !== 'Side' && cat !== 'Breakfast';
+    if (mealType === 'NoDessert') return cat !== 'Dessert'; // fallback: at least not a dessert
     return true;
   }
 
