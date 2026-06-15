@@ -690,28 +690,39 @@
     // "Dinner" means any main course (the default for most meals), treat like no mealType
     const typeFilter = mealType && mealType !== 'Dinner' ? mealType : '';
 
-    // No constraints at all → random
+    // No constraints at all → truly random (no finite pool to cycle through)
     if (!diet && !cuisine && !typeFilter && (!mealType || mealType === 'Dinner')) return fetchRandom();
 
-    // Diet only (no cuisine, no type filter) → category filter → random pick
-    if (diet && !cuisine && !typeFilter) return lookupRandom(await fetchList('c', diet));
-
-    // Cuisine only (no diet, no type filter) → area filter → random pick
-    if (!diet && cuisine && !typeFilter) return lookupRandom(await fetchList('a', cuisine));
-
-    // Type only (no diet, no cuisine) → type category → random pick
-    if (!diet && !cuisine && typeFilter) return lookupRandom(await fetchTypePool(typeFilter));
-
-    // Two or more active constraints: build best pool, then pick from shuffle bag
-    const pool = cuisine    ? await fetchList('a', cuisine)      :
-                 typeFilter ? await fetchTypePool(typeFilter)     :
-                              await fetchList('c', diet);
-
+    // Reset bag whenever the user's preferences change
     const prefsKey = diet + '|' + cuisine + '|' + mealType;
     if (prefsKey !== lastPrefsKey) {
       shuffleBag   = [];
       lastPrefsKey = prefsKey;
     }
+
+    // Single constraint: build a stub bag from the filtered list, pop one stub per click,
+    // then fetch its full details. Fast — only one lookup call per click.
+    if (diet && !cuisine && !typeFilter) {
+      if (shuffleBag.length === 0)
+        shuffleBag = (await fetchList('c', diet)).sort(() => Math.random() - 0.5);
+      return lookupById(shuffleBag.pop().idMeal);
+    }
+    if (!diet && cuisine && !typeFilter) {
+      if (shuffleBag.length === 0)
+        shuffleBag = (await fetchList('a', cuisine)).sort(() => Math.random() - 0.5);
+      return lookupById(shuffleBag.pop().idMeal);
+    }
+    if (!diet && !cuisine && typeFilter) {
+      if (shuffleBag.length === 0)
+        shuffleBag = (await fetchTypePool(typeFilter)).sort(() => Math.random() - 0.5);
+      return lookupById(shuffleBag.pop().idMeal);
+    }
+
+    // Two or more active constraints: scan the full pool for qualifying meals,
+    // store them all in the bag, pop one per click.
+    const pool = cuisine    ? await fetchList('a', cuisine)      :
+                 typeFilter ? await fetchTypePool(typeFilter)     :
+                              await fetchList('c', diet);
 
     if (shuffleBag.length === 0) {
       shuffleBag = await findAllMatching(pool, diet, mealType);
@@ -769,9 +780,8 @@
     return meal;
   }
 
-  async function lookupRandom(list) {
-    const pick = list[Math.floor(Math.random() * list.length)];
-    const res  = await fetch(BASE + '/lookup.php?i=' + pick.idMeal);
+  async function lookupById(id) {
+    const res  = await fetch(BASE + '/lookup.php?i=' + id);
     if (!res.ok) throw new Error('Lookup returned HTTP ' + res.status);
     const meal = (await res.json()).meals?.[0];
     if (!meal) throw new Error('No meal data in lookup response');
