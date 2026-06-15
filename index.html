@@ -533,6 +533,13 @@
     { flag: '🇻🇳', name: 'Vietnamese', area: 'Vietnamese'    },
   ];
 
+  const MEAL_TYPE_OPTIONS = [
+    { label: '🍴 Any',     value: ''        },
+    { label: '🥨 Snack',   value: 'Snack'   },
+    { label: '🍲 Dinner',  value: 'Dinner'  },
+    { label: '🍰 Dessert', value: 'Dessert' },
+  ];
+
   const LOADING_MSGS = [
     'Raiding the fridge…',
     'Consulting the chef…',
@@ -546,7 +553,7 @@
   let msgTimer = null;
   let msgIdx   = 0;
   // '' = no restriction (not null, avoids JSON.stringify double-quote issue)
-  let prefs = { diet: '', cuisine: '' };
+  let prefs = { diet: '', cuisine: '', mealType: '' };
 
   // ── Landing ───────────────────────────────────────────────────────────────
   function showLanding() {
@@ -555,6 +562,11 @@
     const dietHtml = DIET_OPTIONS.map((o, i) =>
       `<button class="pill${i === 0 && prefs.diet === '' ? ' active' : prefs.diet === o.value && prefs.diet !== '' ? ' active' : ''}"
         data-group="diet" data-value="${o.value}" onclick="selectPill(this)">${o.label}</button>`
+    ).join('');
+
+    const mealTypeHtml = MEAL_TYPE_OPTIONS.map(o =>
+      `<button class="pill${prefs.mealType === o.value ? ' active' : ''}"
+        data-group="mealType" data-value="${o.value}" onclick="selectPill(this)">${o.label}</button>`
     ).join('');
 
     const cuisineHtml = CUISINE_OPTIONS.map(c =>
@@ -577,6 +589,14 @@
             <span class="tag tag-req">Required</span>
           </div>
           <div class="pills">${dietHtml}</div>
+        </div>
+
+        <div class="pref-section">
+          <div class="pref-header">
+            <p class="pref-label">What type of meal?</p>
+            <span class="tag tag-opt">Optional</span>
+          </div>
+          <div class="pills">${mealTypeHtml}</div>
         </div>
 
         <div class="pref-section">
@@ -662,22 +682,46 @@
 
   // ── Fetch ─────────────────────────────────────────────────────────────────
   async function fetchMeal() {
-    const diet    = prefs.diet;
-    const cuisine = prefs.cuisine;
+    const diet     = prefs.diet;
+    const cuisine  = prefs.cuisine;
+    const mealType = prefs.mealType;
 
-    if (!diet && !cuisine) return fetchRandom();
-    if (diet && !cuisine)  return lookupRandom(await fetchList('c', diet));
-    if (!diet && cuisine)  return lookupRandom(await fetchList('a', cuisine));
+    // "Dinner" means any main course (the default for most meals), treat like no mealType
+    const typeFilter = mealType && mealType !== 'Dinner' ? mealType : '';
 
-    // Both diet + cuisine: fetch the full cuisine list, scan every meal for diet match
-    const pool = await fetchList('a', cuisine);
-    const meal = await scanForDiet(pool, diet);
+    // No constraints at all → random
+    if (!diet && !cuisine && !typeFilter && (!mealType || mealType === 'Dinner')) return fetchRandom();
+
+    // Diet only (no cuisine, no type filter) → category filter → random pick
+    if (diet && !cuisine && !typeFilter) return lookupRandom(await fetchList('c', diet));
+
+    // Cuisine only (no diet, no type filter) → area filter → random pick
+    if (!diet && cuisine && !typeFilter) return lookupRandom(await fetchList('a', cuisine));
+
+    // Type only (no diet, no cuisine) → type category → random pick
+    if (!diet && !cuisine && typeFilter) return lookupRandom(await fetchTypePool(typeFilter));
+
+    // Two or more active constraints: build best pool, scan for matches
+    const pool = cuisine    ? await fetchList('a', cuisine)      :
+                 typeFilter ? await fetchTypePool(typeFilter)     :
+                              await fetchList('c', diet);
+
+    const meal = await scanForPrefs(pool, diet, mealType);
     if (meal) return meal;
-    throw new Error('No ' + diet + ' meals found for ' + cuisine + ' cuisine — try a different combination');
+
+    const desc = [mealType, diet, cuisine].filter(Boolean).join(' + ');
+    throw new Error('No ' + desc + ' recipe found — try a different combination');
   }
 
-  // Scan a cuisine pool in parallel batches of 6, checking ingredients for diet
-  async function scanForDiet(pool, diet) {
+  // Return a meal stub list for the given meal type
+  async function fetchTypePool(mealType) {
+    if (mealType === 'Dessert') return fetchList('c', 'Dessert');
+    if (mealType === 'Snack')   return fetchList('c', 'Starter');
+    return fetchList('c', 'Miscellaneous');
+  }
+
+  // Scan pool in parallel batches of 6, returning first meal that satisfies diet + mealType
+  async function scanForPrefs(pool, diet, mealType) {
     const shuffled = pool.slice().sort(() => Math.random() - 0.5);
     const BATCH = 6;
     for (let i = 0; i < shuffled.length; i += BATCH) {
@@ -691,7 +735,9 @@
       );
       for (const r of settled) {
         if (r.status !== 'fulfilled' || !r.value) continue;
-        if (meetsDiet(r.value, diet)) return r.value;
+        if (!meetsDiet(r.value, diet)) continue;
+        if (!meetsMealType(r.value, mealType)) continue;
+        return r.value;
       }
     }
     return null;
@@ -752,6 +798,15 @@
       case 'Seafood':    return ingredientsContain(meal, SEAFOOD_TERMS);
       default:           return true;
     }
+  }
+
+  function meetsMealType(meal, mealType) {
+    if (!mealType) return true;
+    const cat = meal.strCategory || '';
+    if (mealType === 'Dessert') return cat === 'Dessert';
+    if (mealType === 'Snack')   return cat === 'Starter' || cat === 'Side';
+    if (mealType === 'Dinner')  return cat !== 'Dessert' && cat !== 'Starter' && cat !== 'Side' && cat !== 'Breakfast';
+    return true;
   }
 
   function ingredientsContain(meal, terms) {
@@ -855,12 +910,11 @@
   }
 
   function shareMealFromBtn(btn) {
-    const { name, id, cat, area } = btn.dataset;
-    const text = `🍽️ ${name}\n\nCategory: ${cat} · Cuisine: ${area}\n\nhttps://www.themealdb.com/meal/${id}`;
+    const url  = 'https://www.themealdb.com/meal/' + btn.dataset.id;
     const orig = btn.innerHTML;
-    navigator.clipboard.writeText(text).then(() => {
+    navigator.clipboard.writeText(url).then(() => {
       btn.classList.add('ok');
-      btn.textContent = '✓ Copied!';
+      btn.textContent = '✓ Link copied!';
       setTimeout(() => { btn.classList.remove('ok'); btn.innerHTML = orig; }, 2200);
     });
   }
