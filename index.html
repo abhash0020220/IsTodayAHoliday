@@ -553,8 +553,8 @@
   let msgIdx   = 0;
   // '' = no restriction (not null, avoids JSON.stringify double-quote issue)
   let prefs        = { diet: '', cuisine: '', mealType: '' };
-  let seenMealIds  = new Set(); // tracks shown meals to avoid repeats
-  let lastPrefsKey = '';        // resets seenMealIds when prefs change
+  let shuffleBag   = []; // pre-found qualifying meals; pop one per click, refill when empty
+  let lastPrefsKey = ''; // resets bag when prefs change
 
   // ── Landing ───────────────────────────────────────────────────────────────
   function showLanding() {
@@ -702,23 +702,31 @@
     // Type only (no diet, no cuisine) → type category → random pick
     if (!diet && !cuisine && typeFilter) return lookupRandom(await fetchTypePool(typeFilter));
 
-    // Two or more active constraints: build best pool, scan for matches
+    // Two or more active constraints: build best pool, then pick from shuffle bag
     const pool = cuisine    ? await fetchList('a', cuisine)      :
                  typeFilter ? await fetchTypePool(typeFilter)     :
                               await fetchList('c', diet);
 
-    const meal = await scanForPrefs(pool, diet, mealType);
-    if (meal) return meal;
-
-    // Nothing matched all constraints — retry with relaxed mealType before giving up
-    if (mealType === 'Dinner') {
-      // Still exclude Dessert — user wanted a meal, not a cake
-      const fallback = await scanForPrefs(pool, diet, 'NoDessert');
-      if (fallback) return fallback;
+    const prefsKey = diet + '|' + cuisine + '|' + mealType;
+    if (prefsKey !== lastPrefsKey) {
+      shuffleBag   = [];
+      lastPrefsKey = prefsKey;
     }
 
-    const desc = [mealType, diet, cuisine].filter(Boolean).join(' + ');
-    throw new Error('No ' + desc + ' recipe found — try a different combination');
+    if (shuffleBag.length === 0) {
+      shuffleBag = await findAllMatching(pool, diet, mealType);
+      if (shuffleBag.length === 0 && mealType === 'Dinner') {
+        // Nothing passes Dinner constraints — relax to any non-Dessert
+        shuffleBag = await findAllMatching(pool, diet, 'NoDessert');
+      }
+      if (shuffleBag.length === 0) {
+        const desc = [mealType, diet, cuisine].filter(Boolean).join(' + ');
+        throw new Error('No ' + desc + ' recipe found — try a different combination');
+      }
+      shuffleBag.sort(() => Math.random() - 0.5);
+    }
+
+    return shuffleBag.pop();
   }
 
   // Return a meal stub list for the given meal type
@@ -728,22 +736,13 @@
     return fetchList('c', 'Miscellaneous');
   }
 
-  // Scan pool in parallel batches of 6, avoiding meals already shown this session.
-  // Scans the full pool so it can fall back to a seen meal if all options are exhausted.
-  async function scanForPrefs(pool, diet, mealType) {
-    // Reset history when the user changes their preferences
-    const prefsKey = prefs.diet + '|' + prefs.cuisine + '|' + prefs.mealType;
-    if (prefsKey !== lastPrefsKey) {
-      seenMealIds.clear();
-      lastPrefsKey = prefsKey;
-    }
-
-    const shuffled = pool.slice().sort(() => Math.random() - 0.5);
-    const BATCH = 6;
-    let anyMatch = null; // first qualifying meal (seen or not) as a last-resort fallback
-
-    for (let i = 0; i < shuffled.length; i += BATCH) {
-      const batch   = shuffled.slice(i, i + BATCH);
+  // Scan entire pool in batches of 8, return all meals passing diet + mealType checks.
+  // Called once per bag-fill; the caller shuffles results and pops one per click.
+  async function findAllMatching(pool, diet, mealType) {
+    const BATCH = 8;
+    const matches = [];
+    for (let i = 0; i < pool.length; i += BATCH) {
+      const batch   = pool.slice(i, i + BATCH);
       const settled = await Promise.allSettled(
         batch.map(s =>
           fetch(BASE + '/lookup.php?i=' + s.idMeal)
@@ -756,21 +755,10 @@
         const meal = r.value;
         if (!meetsDiet(meal, diet)) continue;
         if (!meetsMealType(meal, mealType)) continue;
-        if (!anyMatch) anyMatch = meal;
-        if (!seenMealIds.has(meal.idMeal)) {
-          seenMealIds.add(meal.idMeal);
-          return meal;
-        }
+        matches.push(meal);
       }
     }
-
-    // Every matching meal has been shown — reset and return any qualifying meal
-    if (anyMatch) {
-      seenMealIds.clear();
-      seenMealIds.add(anyMatch.idMeal);
-      return anyMatch;
-    }
-    return null;
+    return matches;
   }
 
   async function fetchRandom() {
